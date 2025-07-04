@@ -1,5 +1,11 @@
 # Lorenz Attractor Professional Suite
 
+[![PyPI version](https://badge.fury.io/py/lorenz-attractor.svg)](https://badge.fury.io/py/lorenz-attractor)
+[![Python versions](https://img.shields.io/pypi/pyversions/lorenz-attractor.svg)](https://pypi.org/project/lorenz-attractor/)
+[![License](https://img.shields.io/pypi/l/lorenz-attractor.svg)](https://pypi.org/project/lorenz-attractor/)
+[![Build Status](https://github.com/josesolisrosales/lorenz-attractor/actions/workflows/ci.yml/badge.svg)](https://github.com/josesolisrosales/lorenz-attractor/actions)
+[![Downloads](https://pepy.tech/badge/lorenz-attractor)](https://pepy.tech/project/lorenz-attractor)
+
 A comprehensive, professional-grade simulation and visualization toolkit for the Lorenz attractor and related chaotic dynamical systems. This project transforms a basic college simulation into a production-quality scientific computing package.
 
 ## 🌟 Features
@@ -38,14 +44,18 @@ A comprehensive, professional-grade simulation and visualization toolkit for the
 ### Installation
 
 ```bash
+# Install from PyPI
+pip install lorenz-attractor
+```
+
+### Development Installation
+
+```bash
 # Clone the repository
 git clone https://github.com/josesolisrosales/lorenz-attractor.git
 cd lorenz-attractor
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Install the package
+# Install in development mode
 pip install -e .
 ```
 
@@ -73,23 +83,23 @@ fig = plotter.plot_3d_trajectory(result)
 
 ```bash
 # Basic simulation
-lorenz-sim simulate --sigma 10 --rho 28 --beta 2.667
+lorenz-attractor simulate --sigma 10 --rho 28 --beta 2.667
 
 # Parameter sweep
-lorenz-sim sweep --parameter rho --range 20 30 --steps 100
+lorenz-attractor sweep --parameter rho --range 20 30 --steps 100
 
 # Real-time visualization
-lorenz-sim realtime --method pygame
+lorenz-attractor realtime --method pygame
 
 # Launch web interface
-lorenz-sim web
+lorenz-web --host 0.0.0.0 --port 8050
 ```
 
 ### Web Interface
 
 ```bash
 # Launch interactive web application
-lorenz-sim web --host 0.0.0.0 --port 8050
+lorenz-web --host 0.0.0.0 --port 8050
 ```
 
 Then open http://localhost:8050 in your browser.
@@ -184,18 +194,16 @@ This toolkit is suitable for:
 
 ## 📚 Documentation
 
-- [API Reference](docs/api.md)
-- [User Guide](docs/guide.md)
 - [Examples](examples/)
-- [Developer Documentation](docs/development.md)
+- [CITATION.cff](CITATION.cff) - Citation information
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please open an issue or submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
