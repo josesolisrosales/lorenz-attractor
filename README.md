@@ -3,8 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/lorenz-attractor.svg)](https://badge.fury.io/py/lorenz-attractor)
 [![Python versions](https://img.shields.io/pypi/pyversions/lorenz-attractor.svg)](https://pypi.org/project/lorenz-attractor/)
 [![License](https://img.shields.io/pypi/l/lorenz-attractor.svg)](https://pypi.org/project/lorenz-attractor/)
-[![Build Status](https://github.com/josesolisrosales/lorenz-attractor/actions/workflows/ci.yml/badge.svg)](https://github.com/josesolisrosales/lorenz-attractor/actions)
-[![Downloads](https://pepy.tech/badge/lorenz-attractor)](https://pepy.tech/project/lorenz-attractor)
+[![Build Status](https://github.com/josesolisrosales/lorenz-attractor/actions/workflows/publish-to-pypi.yml/badge.svg)](https://github.com/josesolisrosales/lorenz-attractor/actions)
 
 A comprehensive, professional-grade simulation and visualization toolkit for the Lorenz attractor and related chaotic dynamical systems. This project transforms a basic college simulation into a production-quality scientific computing package.
 
