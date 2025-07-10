@@ -1,6 +1,7 @@
 """Web application for interactive Lorenz attractor exploration."""
 
 import json
+
 import dash
 import numpy as np
 import plotly.graph_objects as go
