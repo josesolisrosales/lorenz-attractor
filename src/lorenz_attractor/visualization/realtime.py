@@ -11,13 +11,35 @@ import numpy as np
 import pygame
 from matplotlib.animation import FuncAnimation
 from OpenGL.GL import (
-    glEnable, glBlendFunc, glHint, glMatrixMode, glClear, glLoadIdentity,
-    glTranslatef, glRotatef, glLineWidth, glBegin, glColor3f, glColor4f,
-    glVertex3f, glEnd, glPointSize,
-    GL_DEPTH_TEST, GL_BLEND, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-    GL_LINE_SMOOTH, GL_LINE_SMOOTH_HINT, GL_NICEST, GL_PROJECTION,
-    GL_MODELVIEW, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_LINES,
-    GL_LINE_STRIP, GL_POINTS
+    glEnable,
+    glBlendFunc,
+    glHint,
+    glMatrixMode,
+    glClear,
+    glLoadIdentity,
+    glTranslatef,
+    glRotatef,
+    glLineWidth,
+    glBegin,
+    glColor3f,
+    glColor4f,
+    glVertex3f,
+    glEnd,
+    glPointSize,
+    GL_DEPTH_TEST,
+    GL_BLEND,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_LINE_SMOOTH,
+    GL_LINE_SMOOTH_HINT,
+    GL_NICEST,
+    GL_PROJECTION,
+    GL_MODELVIEW,
+    GL_COLOR_BUFFER_BIT,
+    GL_DEPTH_BUFFER_BIT,
+    GL_LINES,
+    GL_LINE_STRIP,
+    GL_POINTS,
 )
 from OpenGL.GLU import gluPerspective
 

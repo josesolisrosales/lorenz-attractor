@@ -83,7 +83,9 @@ class InitialConditions:
 
         # Use system entropy for true randomness
         entropy = os.urandom(4)  # Use 4 bytes instead of 12
-        seed = int.from_bytes(entropy, 'big') % (2**32)  # Ensure seed is within valid range
+        seed = int.from_bytes(entropy, 'big') % (
+            2**32
+        )  # Ensure seed is within valid range
 
         np.random.seed(seed)
         x, y, z = np.random.normal(0, scale, 3)

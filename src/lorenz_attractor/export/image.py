@@ -1,6 +1,5 @@
 """Image export capabilities."""
 
-
 import matplotlib.pyplot as plt
 
 from ..core.simulator import SimulationResult
