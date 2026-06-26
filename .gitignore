@@ -235,3 +235,6 @@ temp/
 tmp/
 *.tmp
 *.temp
+
+# Superpowers planning docs (local only, never committed)
+docs/superpowers/
