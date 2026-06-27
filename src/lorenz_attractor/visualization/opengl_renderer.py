@@ -1,7 +1,7 @@
 """OpenGL rendering components."""
 
 import math
-from typing import Tuple
+from typing import Any, Optional, Tuple, cast
 
 import moderngl
 import numpy as np
@@ -13,7 +13,7 @@ from ..core.simulator import SimulationResult
 class OpenGLRenderer:
     """OpenGL renderer for high-performance visualization."""
 
-    def __init__(self, window_size: Tuple[int, int] = (1200, 800)):
+    def __init__(self, window_size: Tuple[int, int] = (1200, 800)) -> None:
         """
         Initialize renderer.
 
@@ -21,15 +21,15 @@ class OpenGLRenderer:
             window_size: Window size (width, height)
         """
         self.window_size = window_size
-        self.ctx = None
-        self.program = None
+        self.ctx: Optional[moderngl.Context] = None
+        self.program: Optional[moderngl.Program] = None
         self.camera_distance = 80.0
         self.camera_angle_x = 0.0
         self.camera_angle_y = 0.0
         self.mouse_sensitivity = 0.5
         self.zoom_sensitivity = 5.0
 
-    def initialize_context(self):
+    def initialize_context(self) -> None:
         """Initialize OpenGL context."""
         # Initialize Pygame
         pygame.init()
@@ -47,8 +47,9 @@ class OpenGLRenderer:
         # Create shader program
         self._create_shader_program()
 
-    def _create_shader_program(self):
+    def _create_shader_program(self) -> None:
         """Create shader program for trajectory rendering."""
+        assert self.ctx is not None
         vertex_shader = '''
         #version 330 core
 
@@ -99,7 +100,7 @@ class OpenGLRenderer:
         render_mode: str = 'line',
         color_mode: str = 'time',
         point_size: float = 2.0,
-    ):
+    ) -> None:
         """
         Render trajectory using OpenGL.
 
@@ -109,7 +110,7 @@ class OpenGLRenderer:
             color_mode: 'time', 'velocity', or 'position'
             point_size: Size of points when rendering points
         """
-        if not self.ctx:
+        if not self.ctx or not self.program:
             raise RuntimeError("OpenGL context not initialized")
 
         # Prepare vertex data
@@ -140,9 +141,9 @@ class OpenGLRenderer:
         mvp_matrix = self._calculate_mvp_matrix()
         camera_pos = self._get_camera_position()
 
-        self.program['mvp'].write(mvp_matrix.tobytes())
-        self.program['camera_pos'].write(camera_pos.tobytes())
-        self.program['point_size'].value = point_size
+        cast(moderngl.Uniform, self.program['mvp']).write(mvp_matrix.tobytes())
+        cast(moderngl.Uniform, self.program['camera_pos']).write(camera_pos.tobytes())
+        cast(moderngl.Uniform, self.program['point_size']).value = point_size
 
         # Clear screen
         self.ctx.clear(0.0, 0.0, 0.0, 1.0)
@@ -156,7 +157,7 @@ class OpenGLRenderer:
             # Render line first
             vao.render(moderngl.LINE_STRIP)
             # Then render points with larger size
-            self.program['point_size'].value = point_size * 2
+            cast(moderngl.Uniform, self.program['point_size']).value = point_size * 2
             vao.render(moderngl.POINTS)
 
         # Clean up
@@ -210,7 +211,7 @@ class OpenGLRenderer:
         model = np.eye(4, dtype=np.float32)
 
         # View matrix
-        view = np.eye(4, dtype=np.float32)
+        view: np.ndarray = np.eye(4, dtype=np.float32)
 
         # Apply camera transformations
         # Translate back
@@ -274,7 +275,7 @@ class OpenGLRenderer:
 
         return np.array([x, y, z], dtype=np.float32)
 
-    def handle_mouse_input(self, event):
+    def handle_mouse_input(self, event: Any) -> None:
         """Handle mouse input for camera control."""
         if event.type == pygame.MOUSEMOTION:
             if pygame.mouse.get_pressed()[0]:  # Left mouse button
@@ -288,8 +289,11 @@ class OpenGLRenderer:
             self.camera_distance -= event.y * self.zoom_sensitivity
             self.camera_distance = max(10, min(200, self.camera_distance))
 
-    def render_axes(self, length: float = 30.0):
+    def render_axes(self, length: float = 30.0) -> None:
         """Render coordinate axes."""
+        assert self.ctx is not None
+        assert self.program is not None
+
         # Axes vertices
         axes_vertices = np.array(
             [
@@ -344,9 +348,9 @@ class OpenGLRenderer:
         mvp_matrix = self._calculate_mvp_matrix()
         camera_pos = self._get_camera_position()
 
-        self.program['mvp'].write(mvp_matrix.tobytes())
-        self.program['camera_pos'].write(camera_pos.tobytes())
-        self.program['point_size'].value = 1.0
+        cast(moderngl.Uniform, self.program['mvp']).write(mvp_matrix.tobytes())
+        cast(moderngl.Uniform, self.program['camera_pos']).write(camera_pos.tobytes())
+        cast(moderngl.Uniform, self.program['point_size']).value = 1.0
 
         # Render axes as lines
         vao.render(moderngl.LINES)
@@ -357,7 +361,7 @@ class OpenGLRenderer:
         vbo_colors.release()
         vbo_alphas.release()
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up OpenGL resources."""
         if self.program:
             self.program.release()
