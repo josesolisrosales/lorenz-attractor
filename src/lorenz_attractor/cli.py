@@ -287,7 +287,7 @@ def cmd_simulate(args) -> None:
         plotter = LorenzPlotter(style=args.style, dpi=dpi)
 
         if args.plot:
-            fig = plotter.plot_3d_trajectory(
+            plotter.plot_3d_trajectory(
                 result,
                 color_by_time=args.color_by_time,
                 fast_mode=not args.high_quality or args.fast_plot,
@@ -319,7 +319,9 @@ def cmd_realtime(args) -> None:
 
     try:
         if args.method == 'matplotlib':
-            anim = visualizer.start_matplotlib_animation(initial_conditions, config)
+            anim = visualizer.start_matplotlib_animation(  # noqa: F841  # keep ref alive (GC would destroy FuncAnimation before plt.show runs)
+                initial_conditions, config
+            )
             import matplotlib.pyplot as plt
 
             plt.show()
@@ -359,7 +361,7 @@ def cmd_sweep(args) -> None:
         args.parameter, param_values, initial_conditions, config
     )
 
-    print(f"Parameter sweep completed")
+    print("Parameter sweep completed")
 
     # Create plots
     plotter = LorenzPlotter()

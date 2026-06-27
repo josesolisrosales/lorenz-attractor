@@ -49,7 +49,7 @@ class DataExporter:
         # Add metadata as comments if requested
         if include_metadata:
             metadata_lines = [
-                f"# Lorenz Attractor Simulation Data",
+                "# Lorenz Attractor Simulation Data",
                 f"# Generated on: {datetime.now().isoformat()}",
                 f"# Parameters: σ={result.parameters.sigma}, ρ={result.parameters.rho}, β={result.parameters.beta}",
                 f"# Initial conditions: x0={result.initial_conditions.x}, y0={result.initial_conditions.y}, z0={result.initial_conditions.z}",

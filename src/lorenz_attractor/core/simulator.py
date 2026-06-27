@@ -7,13 +7,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+from ..analysis import sweeps
 from ..integration.integrators import (
     AdaptiveIntegrator,
     DormandPrince54Integrator,
     EulerIntegrator,
     RungeKutta4Integrator,
 )
-from ..analysis import sweeps
 from .lorenz import LorenzSystem
 from .parameters import InitialConditions, LorenzParameters, SimulationConfig
 
@@ -230,8 +230,12 @@ class Simulator:
             Dictionary with parameter values and corresponding attractors
         """
         return sweeps.bifurcation_analysis(
-            self, parameter_name, parameter_range, num_points,
-            initial_conditions, config,
+            self,
+            parameter_name,
+            parameter_range,
+            num_points,
+            initial_conditions,
+            config,
         )
 
     def sensitivity_analysis(

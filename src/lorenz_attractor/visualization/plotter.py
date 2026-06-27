@@ -399,7 +399,7 @@ class LorenzPlotter:
                 result.z,
                 alpha=0.7,
                 linewidth=0.5,
-                label=f'{parameter_name}={parameter_values[i*len(results)//5]:.2f}',
+                label=f'{parameter_name}={parameter_values[i * len(results) // 5]:.2f}',
             )
         axes[1, 1].set_xlabel('Time')
         axes[1, 1].set_ylabel('Z')

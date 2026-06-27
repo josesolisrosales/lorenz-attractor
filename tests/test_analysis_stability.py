@@ -32,7 +32,9 @@ def test_equilibria_subcritical_has_origin_only():
 def test_lorenzsystem_methods_delegate_identically():
     system = LorenzSystem()
     state = np.array([2.0, 3.0, 4.0])
-    np.testing.assert_array_equal(system.jacobian(state), stability.jacobian(system, state))
+    np.testing.assert_array_equal(
+        system.jacobian(state), stability.jacobian(system, state)
+    )
     eqs_method = system.equilibrium_points()
     eqs_func = stability.equilibrium_points(system)
     for a, b in zip(eqs_method, eqs_func):
@@ -40,7 +42,9 @@ def test_lorenzsystem_methods_delegate_identically():
     # Verify lyapunov_exponents delegates identically
     initial_conditions = InitialConditions(1.0, 1.0, 1.0)
     lyap_method = system.lyapunov_exponents(initial_conditions, dt=0.01, num_steps=200)
-    lyap_func = stability.lyapunov_exponents(system, initial_conditions, dt=0.01, num_steps=200)
+    lyap_func = stability.lyapunov_exponents(
+        system, initial_conditions, dt=0.01, num_steps=200
+    )
     np.testing.assert_allclose(lyap_method, lyap_func, rtol=1e-10)
 
 

@@ -238,7 +238,9 @@ class DormandPrince54Integrator(BaseIntegrator):
                 t_local += h
                 if np.all(error <= tolerance):
                     factor = 0.9 * np.power(np.max(tolerance / (error + 1e-14)), 1 / 5)
-                    h = min(h * min(factor, 5.0), macro_dt)  # grow, capped, never exceed macro step
+                    h = min(
+                        h * min(factor, 5.0), macro_dt
+                    )  # grow, capped, never exceed macro step
             else:
                 h = max(h * 0.5, self.dt_min)
 

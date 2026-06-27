@@ -51,19 +51,19 @@ class OpenGLRenderer:
         """Create shader program for trajectory rendering."""
         vertex_shader = '''
         #version 330 core
-        
+
         in vec3 in_position;
         in float in_alpha;
         in vec3 in_color;
-        
+
         uniform mat4 mvp;
         uniform vec3 camera_pos;
         uniform float point_size;
-        
+
         out float alpha;
         out vec3 color;
         out float distance_from_camera;
-        
+
         void main() {
             gl_Position = mvp * vec4(in_position, 1.0);
             gl_PointSize = point_size;
@@ -75,13 +75,13 @@ class OpenGLRenderer:
 
         fragment_shader = '''
         #version 330 core
-        
+
         in float alpha;
         in vec3 color;
         in float distance_from_camera;
-        
+
         out vec4 fragColor;
-        
+
         void main() {
             // Distance-based alpha falloff
             float distance_alpha = 1.0 / (1.0 + distance_from_camera * 0.01);

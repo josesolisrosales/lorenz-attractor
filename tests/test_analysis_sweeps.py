@@ -28,8 +28,12 @@ def test_parameter_sweep_runs_one_sim_per_value_and_restores_params():
 def test_bifurcation_analysis_returns_expected_keys():
     sim = Simulator()
     out = sweeps.bifurcation_analysis(
-        sim, 'rho', (20.0, 28.0), num_points=3,
-        initial_conditions=InitialConditions(1.0, 1.0, 1.0), config=_small_config(),
+        sim,
+        'rho',
+        (20.0, 28.0),
+        num_points=3,
+        initial_conditions=InitialConditions(1.0, 1.0, 1.0),
+        config=_small_config(),
     )
     assert set(out) == {'parameter_values', 'attractors', 'parameter_name'}
     assert len(out['parameter_values']) == 3
@@ -39,7 +43,9 @@ def test_bifurcation_analysis_returns_expected_keys():
 def test_sensitivity_analysis_returns_three_divergences():
     sim = Simulator()
     out = sweeps.sensitivity_analysis(
-        sim, InitialConditions(1.0, 1.0, 1.0), perturbation=1e-8,
+        sim,
+        InitialConditions(1.0, 1.0, 1.0),
+        perturbation=1e-8,
         config=_small_config(),
     )
     assert set(out) >= {'original_trajectory', 'divergences', 'time', 'perturbation'}

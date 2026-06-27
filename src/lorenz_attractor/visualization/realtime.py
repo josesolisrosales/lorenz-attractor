@@ -159,7 +159,7 @@ class RealtimeVisualizer:
         """
         # Initialize Pygame
         pygame.init()
-        display = pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
+        pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
         pygame.display.set_caption("Real-time Lorenz Attractor")
 
         # OpenGL setup
@@ -300,7 +300,7 @@ class RealtimeVisualizer:
         """
         # Initialize Pygame for window management
         pygame.init()
-        display = pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
+        pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
         pygame.display.set_caption("High-Performance Lorenz Attractor")
 
         # Create ModernGL context
@@ -309,14 +309,14 @@ class RealtimeVisualizer:
         # Vertex shader
         vertex_shader = '''
         #version 330 core
-        
+
         in vec3 in_position;
         in float in_alpha;
-        
+
         uniform mat4 mvp;
-        
+
         out float alpha;
-        
+
         void main() {
             gl_Position = mvp * vec4(in_position, 1.0);
             alpha = in_alpha;
@@ -326,10 +326,10 @@ class RealtimeVisualizer:
         # Fragment shader
         fragment_shader = '''
         #version 330 core
-        
+
         in float alpha;
         out vec4 fragColor;
-        
+
         void main() {
             fragColor = vec4(0.0, 0.5, 1.0, alpha);
         }
@@ -469,7 +469,7 @@ class StreamingVisualizer:
                         'z': current_state[2],
                     }
                 )
-            except:
+            except Exception:
                 # Queue is full, skip this point
                 pass
 
@@ -492,7 +492,7 @@ class StreamingVisualizer:
         while not self.data_queue.empty() and len(data_points) < num_points:
             try:
                 data_points.append(self.data_queue.get_nowait())
-            except:
+            except Exception:
                 break
 
         return data_points

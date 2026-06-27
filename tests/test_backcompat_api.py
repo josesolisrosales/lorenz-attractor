@@ -22,8 +22,13 @@ def test_top_level_exports_present():
 
 def test_analysis_namespace_exposes_all_functions():
     for fn in (
-        jacobian, equilibrium_points, lyapunov_exponents, poincare_section,
-        parameter_sweep, bifurcation_analysis, sensitivity_analysis,
+        jacobian,
+        equilibrium_points,
+        lyapunov_exponents,
+        poincare_section,
+        parameter_sweep,
+        bifurcation_analysis,
+        sensitivity_analysis,
     ):
         assert callable(fn)
 

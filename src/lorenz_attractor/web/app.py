@@ -17,9 +17,6 @@ def create_app() -> dash.Dash:
 
     app = dash.Dash(__name__, title="Lorenz Attractor Explorer")
 
-    # Initialize components
-    simulator = Simulator()
-
     # Define the app layout
     app.layout = html.Div(
         [
@@ -210,7 +207,7 @@ def create_app() -> dash.Dash:
                                         step=1000,
                                         value=10000,
                                         marks={
-                                            i: f'{i//1000}k'
+                                            i: f'{i // 1000}k'
                                             for i in range(0, 51000, 10000)
                                         },
                                         tooltip={
@@ -232,7 +229,7 @@ def create_app() -> dash.Dash:
                                         step=0.001,
                                         value=0.01,
                                         marks={
-                                            i / 100: f'{i/100:.3f}'
+                                            i / 100: f'{i / 100:.3f}'
                                             for i in range(0, 11, 2)
                                         },
                                         tooltip={

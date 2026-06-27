@@ -1,13 +1,12 @@
 """Headless smoke tests for plotting and image export."""
 
+import matplotlib
 import pytest
 
 from lorenz_attractor.core.parameters import InitialConditions, SimulationConfig
 from lorenz_attractor.core.simulator import Simulator
 from lorenz_attractor.export.image import ImageExporter
 from lorenz_attractor.visualization.plotter import LorenzPlotter
-
-import matplotlib
 
 matplotlib.use('Agg')  # must precede pyplot import anywhere downstream
 
