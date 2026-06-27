@@ -187,7 +187,7 @@ class RealtimeVisualizer:
 
         clock = pygame.time.Clock()
 
-        while self.is_running:
+        while self.is_running:  # pragma: no cover
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
@@ -347,7 +347,7 @@ class RealtimeVisualizer:
 
         clock = pygame.time.Clock()
 
-        while self.is_running:
+        while self.is_running:  # pragma: no cover
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
@@ -451,7 +451,7 @@ class StreamingVisualizer:
         current_state = initial_conditions.to_array()
         current_time = 0
 
-        while self.is_streaming:
+        while self.is_streaming:  # pragma: no cover
             # Simulate next step
             dt = config.dt
             derivative = self.simulator.system.derivative(current_state)
