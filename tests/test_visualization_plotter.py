@@ -1,16 +1,17 @@
 """Headless smoke tests for plotting and image export."""
 
+import pytest
+
+from lorenz_attractor.core.parameters import InitialConditions, SimulationConfig
+from lorenz_attractor.core.simulator import Simulator
+from lorenz_attractor.export.image import ImageExporter
+from lorenz_attractor.visualization.plotter import LorenzPlotter
+
 import matplotlib
 
 matplotlib.use('Agg')  # must precede pyplot import anywhere downstream
 
 import matplotlib.pyplot as plt  # noqa: E402
-import pytest  # noqa: E402
-
-from lorenz_attractor.core.parameters import InitialConditions, SimulationConfig  # noqa: E402
-from lorenz_attractor.core.simulator import Simulator  # noqa: E402
-from lorenz_attractor.export.image import ImageExporter  # noqa: E402
-from lorenz_attractor.visualization.plotter import LorenzPlotter  # noqa: E402
 
 
 @pytest.fixture
@@ -21,12 +22,14 @@ def result():
 
 
 def test_plotter_constructs():
-    assert LorenzPlotter(style='dark') is not None
+    plotter = LorenzPlotter(style='dark', dpi=150)
+    assert plotter.style == 'dark'
+    assert plotter.dpi == 150
 
 
 def test_plot_3d_trajectory_builds_a_figure(result):
     fig = LorenzPlotter().plot_3d_trajectory(result)
-    assert fig is not None
+    assert hasattr(fig, 'axes') and len(fig.axes) > 0
     plt.close(fig)
 
 
