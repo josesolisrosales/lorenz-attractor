@@ -245,7 +245,7 @@ class VideoExporter:
         self,
         results: List[SimulationResult],
         filename: str,
-        colors: Optional[Any] = None,
+        colors: Optional[Union[List[str], np.ndarray]] = None,
         quality: str = 'high',
     ) -> str:
         """

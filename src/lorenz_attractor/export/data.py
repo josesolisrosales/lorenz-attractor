@@ -114,7 +114,7 @@ class DataExporter:
 
         return str(filename)
 
-    def export_hdf5(self, result: SimulationResult, filename: str) -> str:
+    def export_hdf5(self, result: SimulationResult, filename: Union[str, Path]) -> str:
         """
         Export simulation result to HDF5 format.
 
@@ -171,7 +171,7 @@ class DataExporter:
             f.attrs['version'] = '2.0.0'
             f.attrs['generated_on'] = datetime.now().isoformat()
 
-        return filename
+        return str(filename)
 
     def export_numpy(self, result: SimulationResult, filename: Union[str, Path]) -> str:
         """
