@@ -133,24 +133,9 @@ class LorenzSystem:
         Returns:
             Array of intersection points
         """
-        plane_normal = plane_normal / np.linalg.norm(plane_normal)
+        from ..analysis import sections
 
-        intersections = []
-
-        for i in range(len(trajectory) - 1):
-            p1, p2 = trajectory[i], trajectory[i + 1]
-
-            # Check if trajectory crosses the plane
-            d1 = np.dot(p1, plane_normal) - plane_offset
-            d2 = np.dot(p2, plane_normal) - plane_offset
-
-            if d1 * d2 < 0:  # Sign change indicates crossing
-                # Linear interpolation to find intersection
-                t = -d1 / (d2 - d1)
-                intersection = p1 + t * (p2 - p1)
-                intersections.append(intersection)
-
-        return np.array(intersections) if intersections else np.array([]).reshape(0, 3)
+        return sections.poincare_section(trajectory, plane_normal, plane_offset)
 
     def update_parameters(self, new_parameters: LorenzParameters):
         """
