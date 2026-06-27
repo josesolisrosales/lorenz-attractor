@@ -1,6 +1,6 @@
 """Core Lorenz system implementation with advanced features."""
 
-from typing import Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from numba import jit
@@ -30,7 +30,7 @@ class LorenzSystem:
         self.parameters = parameters or LorenzParameters.classical()
         self._compiled_derivative = self._compile_derivative()
 
-    def _compile_derivative(self):
+    def _compile_derivative(self) -> Callable[[np.ndarray], np.ndarray]:
         """Compile the derivative function for performance."""
         sigma, rho, beta = (
             self.parameters.sigma,
@@ -38,7 +38,7 @@ class LorenzSystem:
             self.parameters.beta,
         )
 
-        @jit(nopython=True)
+        @jit(nopython=True)  # type: ignore[untyped-decorator]  # numba ships no stubs
         def derivative(state: np.ndarray) -> np.ndarray:
             """Compute derivatives of the Lorenz system."""
             x, y, z = state
@@ -49,7 +49,7 @@ class LorenzSystem:
 
             return np.array([dx_dt, dy_dt, dz_dt])
 
-        return derivative
+        return derivative  # type: ignore[no-any-return]
 
     def derivative(
         self, state: Union[np.ndarray, Tuple[float, float, float]]
@@ -84,7 +84,7 @@ class LorenzSystem:
 
         return stability.jacobian(self, state)
 
-    def equilibrium_points(self) -> list:
+    def equilibrium_points(self) -> List[np.ndarray]:
         """
         Calculate equilibrium points of the system.
 
@@ -137,7 +137,7 @@ class LorenzSystem:
 
         return sections.poincare_section(trajectory, plane_normal, plane_offset)
 
-    def update_parameters(self, new_parameters: LorenzParameters):
+    def update_parameters(self, new_parameters: LorenzParameters) -> None:
         """
         Update system parameters and recompile derivative function.
 

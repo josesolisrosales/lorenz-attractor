@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+from typing import Any
 
 import numpy as np
 
@@ -236,7 +237,7 @@ Examples:
     return parser
 
 
-def cmd_simulate(args) -> None:
+def cmd_simulate(args: Any) -> None:
     """Handle simulate command."""
     # Create parameters
     params = LorenzParameters(sigma=args.sigma, rho=args.rho, beta=args.beta)
@@ -276,7 +277,7 @@ def cmd_simulate(args) -> None:
 
     # Export data
     if args.export_data:
-        exporter = DataExporter()
+        exporter = DataExporter()  # type: ignore[no-untyped-call]  # export/data.py is out of this task's scope
         exporter.export_csv(result, args.export_data)
         print(f"Data exported to {args.export_data}")
 
@@ -302,7 +303,7 @@ def cmd_simulate(args) -> None:
             print(f"Video exported to {args.export_video}")
 
 
-def cmd_realtime(args) -> None:
+def cmd_realtime(args: Any) -> None:
     """Handle realtime command."""
     # Create parameters
     params = LorenzParameters(sigma=args.sigma, rho=args.rho, beta=args.beta)
@@ -335,7 +336,7 @@ def cmd_realtime(args) -> None:
         print(f"Error in real-time visualization: {e}")
 
 
-def cmd_sweep(args) -> None:
+def cmd_sweep(args: Any) -> None:
     """Handle parameter sweep command."""
     # Create base parameters
     base_params = LorenzParameters()
@@ -384,7 +385,7 @@ def cmd_sweep(args) -> None:
         print(f"Video exported to {args.export_video}")
 
 
-def cmd_bifurcation(args) -> None:
+def cmd_bifurcation(args: Any) -> None:
     """Handle bifurcation analysis command."""
     # Create parameters
     base_params = LorenzParameters()
@@ -420,7 +421,7 @@ def cmd_bifurcation(args) -> None:
         plt.show()
 
 
-def cmd_analysis(args) -> None:
+def cmd_analysis(args: Any) -> None:
     """Handle advanced analysis command."""
     # Create parameters
     params = LorenzParameters(sigma=args.sigma, rho=args.rho, beta=args.beta)
@@ -480,7 +481,7 @@ def cmd_analysis(args) -> None:
             plt.show()
 
 
-def cmd_web(args) -> None:
+def cmd_web(args: Any) -> None:
     """Handle web interface command."""
     print(f"Starting web interface at http://{args.host}:{args.port}")
     print("Press Ctrl+C to stop the server")

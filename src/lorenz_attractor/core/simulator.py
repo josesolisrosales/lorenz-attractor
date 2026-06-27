@@ -3,7 +3,7 @@
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 
@@ -45,7 +45,9 @@ class SimulationResult:
         return self.trajectory[:, 2]
 
     def poincare_section(
-        self, plane_normal: np.ndarray = None, plane_offset: float = 27.0
+        self,
+        plane_normal: Optional[np.ndarray] = None,
+        plane_offset: float = 27.0,
     ) -> np.ndarray:
         """Compute Poincaré section."""
         if plane_normal is None:
@@ -54,16 +56,19 @@ class SimulationResult:
         system = LorenzSystem(self.parameters)
         return system.poincare_section(self.trajectory, plane_normal, plane_offset)
 
-    def save(self, filename: str):
+    def save(self, filename: str) -> None:
         """Save simulation results to file."""
+        parameters: np.ndarray = np.array(self.parameters.to_dict(), dtype=object)
+        config: np.ndarray = np.array(self.config.to_dict(), dtype=object)
+        metadata: np.ndarray = np.array(self.metadata, dtype=object)
         np.savez_compressed(
             filename,
             time=self.time,
             trajectory=self.trajectory,
-            parameters=self.parameters.to_dict(),
+            parameters=parameters,
             initial_conditions=self.initial_conditions.to_array(),
-            config=self.config.to_dict(),
-            metadata=self.metadata,
+            config=config,
+            metadata=metadata,
         )
 
     @classmethod
@@ -119,7 +124,7 @@ class Simulator:
         integrator = integrator_class(config.dt)
 
         # Define system function for integrator
-        def system_func(y, t):
+        def system_func(y: np.ndarray, t: float) -> np.ndarray:
             return self.system.derivative(y)
 
         # Integrate
@@ -213,8 +218,8 @@ class Simulator:
         parameter_name: str,
         parameter_range: Tuple[float, float],
         num_points: int = 100,
-        initial_conditions: InitialConditions = None,
-        config: SimulationConfig = None,
+        initial_conditions: Optional[InitialConditions] = None,
+        config: Optional[SimulationConfig] = None,
     ) -> Dict[str, Any]:
         """
         Perform bifurcation analysis.
@@ -242,7 +247,7 @@ class Simulator:
         self,
         initial_conditions: InitialConditions,
         perturbation: float = 1e-10,
-        config: SimulationConfig = None,
+        config: Optional[SimulationConfig] = None,
     ) -> Dict[str, Any]:
         """
         Analyze sensitivity to initial conditions.
@@ -260,7 +265,9 @@ class Simulator:
         )
 
     def estimate_lyapunov_exponent(
-        self, initial_conditions: InitialConditions, config: SimulationConfig = None
+        self,
+        initial_conditions: InitialConditions,
+        config: Optional[SimulationConfig] = None,
     ) -> float:
         """
         Estimate the largest Lyapunov exponent.
@@ -276,9 +283,9 @@ class Simulator:
             config = SimulationConfig(num_steps=50000)
 
         # Use system's built-in method
-        return self.system.lyapunov_exponents(
+        return cast(float, self.system.lyapunov_exponents(
             initial_conditions, config.dt, config.num_steps
-        )[0]
+        )[0])
 
     def __repr__(self) -> str:
         """String representation."""

@@ -6,6 +6,9 @@ from typing import Callable, Optional, Tuple
 import numpy as np
 from numba import jit
 
+# Type alias for the integrator function signature: f(y, t) -> dy/dt
+_IntegratorFunc = Callable[[np.ndarray, float], np.ndarray]
+
 
 class BaseIntegrator(ABC):
     """Base class for numerical integrators."""
@@ -20,7 +23,7 @@ class BaseIntegrator(ABC):
         self.dt = dt
 
     @abstractmethod
-    def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
+    def step(self, f: _IntegratorFunc, y: np.ndarray, t: float) -> np.ndarray:
         """
         Perform one integration step.
 
@@ -36,7 +39,7 @@ class BaseIntegrator(ABC):
 
     def integrate(
         self,
-        f: Callable,
+        f: _IntegratorFunc,
         y0: np.ndarray,
         t_span: Tuple[float, float],
         num_steps: Optional[int] = None,
@@ -75,15 +78,16 @@ class BaseIntegrator(ABC):
 class EulerIntegrator(BaseIntegrator):
     """Forward Euler integration method."""
 
-    def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
+    def step(self, f: _IntegratorFunc, y: np.ndarray, t: float) -> np.ndarray:
         """Euler integration step."""
-        return y + self.dt * f(y, t)
+        result: np.ndarray = y + self.dt * f(y, t)
+        return result
 
 
 class RungeKutta4Integrator(BaseIntegrator):
     """Fourth-order Runge-Kutta integration method."""
 
-    def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
+    def step(self, f: _IntegratorFunc, y: np.ndarray, t: float) -> np.ndarray:
         """RK4 integration step."""
         dt = self.dt
 
@@ -92,7 +96,8 @@ class RungeKutta4Integrator(BaseIntegrator):
         k3 = f(y + dt / 2 * k2, t + dt / 2)
         k4 = f(y + dt * k3, t + dt)
 
-        return y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        result: np.ndarray = y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        return result
 
 
 class AdaptiveIntegrator(BaseIntegrator):
@@ -114,7 +119,7 @@ class AdaptiveIntegrator(BaseIntegrator):
         self.dt_max = dt * 10
         self._h_internal = dt
 
-    def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
+    def step(self, f: _IntegratorFunc, y: np.ndarray, t: float) -> np.ndarray:
         """Advance by exactly self.dt using error-controlled adaptive sub-steps."""
         macro_dt = self.dt
         if macro_dt <= 0:
@@ -146,14 +151,17 @@ class AdaptiveIntegrator(BaseIntegrator):
         self._h_internal = h
         return y_cur
 
-    def _rk4_step(self, f: Callable, y: np.ndarray, t: float, dt: float) -> np.ndarray:
+    def _rk4_step(
+        self, f: _IntegratorFunc, y: np.ndarray, t: float, dt: float
+    ) -> np.ndarray:
         """Single RK4 step."""
         k1 = f(y, t)
         k2 = f(y + dt / 2 * k1, t + dt / 2)
         k3 = f(y + dt / 2 * k2, t + dt / 2)
         k4 = f(y + dt * k3, t + dt)
 
-        return y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        result: np.ndarray = y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        return result
 
 
 class DormandPrince54Integrator(BaseIntegrator):
@@ -205,7 +213,7 @@ class DormandPrince54Integrator(BaseIntegrator):
         self._h_internal = dt
 
     def _dopri_substep(
-        self, f: Callable, y: np.ndarray, t: float, h: float
+        self, f: _IntegratorFunc, y: np.ndarray, t: float, h: float
     ) -> Tuple[np.ndarray, np.ndarray]:
         """One Dormand-Prince 5(4) step of size h. Returns (5th-order y, error estimate)."""
         k = np.zeros((7, len(y)))
@@ -213,12 +221,12 @@ class DormandPrince54Integrator(BaseIntegrator):
         for i in range(1, 7):
             y_temp = y + h * np.sum(self.a[i, :i] * k[:i].T, axis=1)
             k[i] = f(y_temp, t + self.c[i] * h)
-        y_new = y + h * np.sum(self.b * k.T, axis=1)
-        y_new_star = y + h * np.sum(self.b_star * k.T, axis=1)
-        error = np.abs(y_new - y_new_star)
+        y_new: np.ndarray = y + h * np.sum(self.b * k.T, axis=1)
+        y_new_star: np.ndarray = y + h * np.sum(self.b_star * k.T, axis=1)
+        error: np.ndarray = np.abs(y_new - y_new_star)
         return y_new, error
 
-    def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
+    def step(self, f: _IntegratorFunc, y: np.ndarray, t: float) -> np.ndarray:
         """Advance by exactly self.dt using error-controlled Dormand-Prince sub-steps."""
         macro_dt = self.dt
         if macro_dt <= 0:
@@ -248,7 +256,7 @@ class DormandPrince54Integrator(BaseIntegrator):
         return y_cur
 
 
-@jit(nopython=True)
+@jit(nopython=True)  # type: ignore[untyped-decorator]  # numba ships no stubs
 def _rk4_step_numba(f_values: np.ndarray, y: np.ndarray, dt: float) -> np.ndarray:
     """Numba-compiled RK4 step for performance."""
     k1 = f_values[0]
@@ -256,7 +264,7 @@ def _rk4_step_numba(f_values: np.ndarray, y: np.ndarray, dt: float) -> np.ndarra
     k3 = f_values[2]
     k4 = f_values[3]
 
-    return y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+    return y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)  # type: ignore[no-any-return]
 
 
 class HighPerformanceRK4Integrator(BaseIntegrator):
@@ -267,23 +275,24 @@ class HighPerformanceRK4Integrator(BaseIntegrator):
         super().__init__(dt)
         self._compiled_step = self._compile_step()
 
-    def _compile_step(self):
+    def _compile_step(self) -> Callable[[_IntegratorFunc, np.ndarray, float], np.ndarray]:
         """Compile the integration step for performance."""
         dt = self.dt
 
-        @jit(nopython=True)
-        def step_function(f_func, y: np.ndarray, t: float) -> np.ndarray:
+        @jit(nopython=True)  # type: ignore[untyped-decorator]  # numba ships no stubs
+        def step_function(f_func: Callable[..., np.ndarray], y: np.ndarray, t: float) -> np.ndarray:  # noqa: E501
             """Compiled RK4 step."""
             k1 = f_func(y)
             k2 = f_func(y + dt / 2 * k1)
             k3 = f_func(y + dt / 2 * k2)
             k4 = f_func(y + dt * k3)
 
-            return y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+            return y + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)  # type: ignore[no-any-return]
 
-        return step_function
+        return step_function  # type: ignore[no-any-return]
 
-    def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
+    def step(self, f: _IntegratorFunc, y: np.ndarray, t: float) -> np.ndarray:
         """High-performance RK4 step."""
         # Note: This assumes f doesn't depend on t explicitly
-        return self._compiled_step(f, y, t)
+        result: np.ndarray = self._compiled_step(f, y, t)
+        return result
