@@ -112,31 +112,39 @@ class AdaptiveIntegrator(BaseIntegrator):
         self.atol = atol
         self.dt_min = dt / 1000
         self.dt_max = dt * 10
+        self._h_internal = dt
 
     def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
-        """Adaptive step with error control."""
-        dt = self.dt
+        """Advance by exactly self.dt using error-controlled adaptive sub-steps."""
+        macro_dt = self.dt
+        if macro_dt <= 0:
+            return y
 
-        while True:
-            # Take one step with current dt
-            y_new = self._rk4_step(f, y, t, dt)
+        t_local = 0.0
+        h = min(self._h_internal, macro_dt)
+        y_cur = np.asarray(y, dtype=float)
 
-            # Take two steps with dt/2
-            y_mid = self._rk4_step(f, y, t, dt / 2)
-            y_new_half = self._rk4_step(f, y_mid, t + dt / 2, dt / 2)
+        while t_local < macro_dt - 1e-15:
+            h = min(h, macro_dt - t_local)
 
-            # Estimate error
-            error = np.abs(y_new - y_new_half)
-            tolerance = self.atol + self.rtol * np.abs(y_new_half)
+            # Step-doubling error estimate: one full step vs two half steps.
+            y_full = self._rk4_step(f, y_cur, t + t_local, h)
+            y_half = self._rk4_step(f, y_cur, t + t_local, h / 2)
+            y_half = self._rk4_step(f, y_half, t + t_local + h / 2, h / 2)
 
-            # Check if error is acceptable
-            if np.all(error <= tolerance):
-                self.dt = min(dt * 1.5, self.dt_max)  # Increase step size
-                return y_new_half
+            error = np.abs(y_full - y_half)
+            tolerance = self.atol + self.rtol * np.abs(y_half)
+
+            if np.all(error <= tolerance) or h <= self.dt_min:
+                y_cur = y_half
+                t_local += h
+                if np.all(error <= tolerance):
+                    h = min(h * 1.5, macro_dt)  # grow, but never exceed the macro step
             else:
-                dt = max(dt * 0.5, self.dt_min)  # Decrease step size
-                if dt == self.dt_min:
-                    return y_new_half  # Accept with minimum step size
+                h = max(h * 0.5, self.dt_min)
+
+        self._h_internal = h
+        return y_cur
 
     def _rk4_step(self, f: Callable, y: np.ndarray, t: float, dt: float) -> np.ndarray:
         """Single RK4 step."""
@@ -194,41 +202,48 @@ class DormandPrince54Integrator(BaseIntegrator):
             ]
         )
         self.c = np.array([0, 1 / 5, 3 / 10, 4 / 5, 8 / 9, 1, 1])
+        self._h_internal = dt
+
+    def _dopri_substep(
+        self, f: Callable, y: np.ndarray, t: float, h: float
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """One Dormand-Prince 5(4) step of size h. Returns (5th-order y, error estimate)."""
+        k = np.zeros((7, len(y)))
+        k[0] = f(y, t)
+        for i in range(1, 7):
+            y_temp = y + h * np.sum(self.a[i, :i] * k[:i].T, axis=1)
+            k[i] = f(y_temp, t + self.c[i] * h)
+        y_new = y + h * np.sum(self.b * k.T, axis=1)
+        y_new_star = y + h * np.sum(self.b_star * k.T, axis=1)
+        error = np.abs(y_new - y_new_star)
+        return y_new, error
 
     def step(self, f: Callable, y: np.ndarray, t: float) -> np.ndarray:
-        """Dormand-Prince step with adaptive step size."""
-        dt = self.dt
+        """Advance by exactly self.dt using error-controlled Dormand-Prince sub-steps."""
+        macro_dt = self.dt
+        if macro_dt <= 0:
+            return y
 
-        while True:
-            # Calculate k values
-            k = np.zeros((7, len(y)))
-            k[0] = f(y, t)
+        t_local = 0.0
+        h = min(self._h_internal, macro_dt)
+        y_cur = np.asarray(y, dtype=float)
 
-            for i in range(1, 7):
-                y_temp = y + dt * np.sum(self.a[i, :i] * k[:i].T, axis=1)
-                k[i] = f(y_temp, t + self.c[i] * dt)
+        while t_local < macro_dt - 1e-15:
+            h = min(h, macro_dt - t_local)
+            y_new, error = self._dopri_substep(f, y_cur, t + t_local, h)
+            tolerance = self.atol + self.rtol * np.maximum(np.abs(y_cur), np.abs(y_new))
 
-            # 5th order solution
-            y_new = y + dt * np.sum(self.b * k.T, axis=1)
-
-            # 4th order solution for error estimation
-            y_new_star = y + dt * np.sum(self.b_star * k.T, axis=1)
-
-            # Error estimation
-            error = np.abs(y_new - y_new_star)
-            tolerance = self.atol + self.rtol * np.maximum(np.abs(y), np.abs(y_new))
-
-            # Check if error is acceptable
-            if np.all(error <= tolerance):
-                # Adjust step size for next iteration
-                factor = 0.9 * np.power(np.max(tolerance / (error + 1e-14)), 1 / 5)
-                self.dt = np.clip(dt * factor, self.dt_min, self.dt_max)
-                return y_new
+            if np.all(error <= tolerance) or h <= self.dt_min:
+                y_cur = y_new
+                t_local += h
+                if np.all(error <= tolerance):
+                    factor = 0.9 * np.power(np.max(tolerance / (error + 1e-14)), 1 / 5)
+                    h = min(h * min(factor, 5.0), macro_dt)  # grow, capped, never exceed macro step
             else:
-                # Reduce step size and retry
-                dt = max(dt * 0.5, self.dt_min)
-                if dt == self.dt_min:
-                    return y_new
+                h = max(h * 0.5, self.dt_min)
+
+        self._h_internal = h
+        return y_cur
 
 
 @jit(nopython=True)
