@@ -110,7 +110,7 @@ class SimulationConfig:
         if self.save_interval <= 0:
             raise ValueError("save_interval must be positive")
 
-        valid_methods = ["euler", "rk4", "rk45", "dopri5"]
+        valid_methods = ["euler", "rk4", "adaptive", "dopri5"]
         if self.integration_method not in valid_methods:
             raise ValueError(f"integration_method must be one of {valid_methods}")
 

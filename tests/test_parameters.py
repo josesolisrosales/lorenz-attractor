@@ -162,11 +162,11 @@ class TestSimulationConfig:
     def test_custom_config(self):
         """Test custom configuration values."""
         config = SimulationConfig(
-            dt=0.001, num_steps=50000, integration_method="rk45", save_interval=10
+            dt=0.001, num_steps=50000, integration_method="adaptive", save_interval=10
         )
         assert config.dt == 0.001
         assert config.num_steps == 50000
-        assert config.integration_method == "rk45"
+        assert config.integration_method == "adaptive"
         assert config.save_interval == 10
 
     def test_config_validation(self):
@@ -199,14 +199,14 @@ class TestSimulationConfig:
     def test_to_dict(self):
         """Test conversion to dictionary."""
         config = SimulationConfig(
-            dt=0.001, num_steps=50000, integration_method="rk45", save_interval=10
+            dt=0.001, num_steps=50000, integration_method="adaptive", save_interval=10
         )
         data = config.to_dict()
 
         expected = {
             'dt': 0.001,
             'num_steps': 50000,
-            'integration_method': 'rk45',
+            'integration_method': 'adaptive',
             'save_interval': 10,
         }
         assert data == expected
@@ -216,12 +216,24 @@ class TestSimulationConfig:
         data = {
             'dt': 0.001,
             'num_steps': 50000,
-            'integration_method': 'rk45',
+            'integration_method': 'adaptive',
             'save_interval': 10,
         }
         config = SimulationConfig.from_dict(data)
 
         assert config.dt == 0.001
         assert config.num_steps == 50000
-        assert config.integration_method == "rk45"
+        assert config.integration_method == "adaptive"
         assert config.save_interval == 10
+
+
+def test_adaptive_is_a_valid_integration_method():
+    # 'adaptive' is offered by the CLI and web UI and must validate.
+    config = SimulationConfig(integration_method='adaptive')
+    assert config.integration_method == 'adaptive'
+
+
+def test_rk45_is_not_a_valid_integration_method():
+    # 'rk45' is not implemented by the simulator and must be rejected.
+    with pytest.raises(ValueError):
+        SimulationConfig(integration_method='rk45')
