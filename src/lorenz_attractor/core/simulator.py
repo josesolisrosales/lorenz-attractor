@@ -215,7 +215,7 @@ class Simulator:
         num_points: int = 100,
         initial_conditions: InitialConditions = None,
         config: SimulationConfig = None,
-    ) -> Dict[str, np.ndarray]:
+    ) -> Dict[str, Any]:
         """
         Perform bifurcation analysis.
 

@@ -22,10 +22,10 @@ def parameter_sweep(
     parameter_values: np.ndarray,
     initial_conditions: InitialConditions,
     config: SimulationConfig,
-) -> 'List[SimulationResult]':
+) -> List[SimulationResult]:
     """Run one simulation per parameter value; restore original params after."""
     original_params = simulator.system.parameters
-    results: List['SimulationResult'] = []
+    results: List[SimulationResult] = []
     for param_value in parameter_values:
         params_dict = original_params.to_dict()
         params_dict[parameter_name] = param_value
