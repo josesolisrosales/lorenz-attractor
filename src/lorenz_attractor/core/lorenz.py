@@ -80,19 +80,9 @@ class LorenzSystem:
         Returns:
             3x3 Jacobian matrix
         """
-        if isinstance(state, tuple):
-            state = np.array(state)
+        from ..analysis import stability
 
-        x, y, z = state
-        sigma, rho, beta = (
-            self.parameters.sigma,
-            self.parameters.rho,
-            self.parameters.beta,
-        )
-
-        J = np.array([[-sigma, sigma, 0], [rho - z, -1, -x], [y, x, -beta]])
-
-        return J
+        return stability.jacobian(self, state)
 
     def equilibrium_points(self) -> list:
         """
@@ -101,26 +91,9 @@ class LorenzSystem:
         Returns:
             List of equilibrium points as numpy arrays
         """
-        sigma, rho, beta = (
-            self.parameters.sigma,
-            self.parameters.rho,
-            self.parameters.beta,
-        )
+        from ..analysis import stability
 
-        # Origin is always an equilibrium point
-        equilibria = [np.array([0.0, 0.0, 0.0])]
-
-        # For rho > 1, there are two additional equilibria
-        if rho > 1:
-            sqrt_term = np.sqrt(beta * (rho - 1))
-
-            # C+ equilibrium
-            equilibria.append(np.array([sqrt_term, sqrt_term, rho - 1]))
-
-            # C- equilibrium
-            equilibria.append(np.array([-sqrt_term, -sqrt_term, rho - 1]))
-
-        return equilibria
+        return stability.equilibrium_points(self)
 
     def lyapunov_exponents(
         self,
@@ -139,54 +112,9 @@ class LorenzSystem:
         Returns:
             Array of three Lyapunov exponents
         """
-        # This is a simplified implementation
-        # For production use, consider using more sophisticated methods
+        from ..analysis import stability
 
-        from scipy.integrate import solve_ivp
-
-        def extended_system(t, y):
-            """Extended system for Lyapunov exponent calculation."""
-            state = y[:3]
-            tangent_vectors = y[3:].reshape(3, 3)
-
-            # System derivative
-            f = self.derivative(state)
-
-            # Jacobian
-            J = self.jacobian(state)
-
-            # Tangent vector derivatives
-            tangent_derivatives = J @ tangent_vectors
-
-            return np.concatenate([f, tangent_derivatives.flatten()])
-
-        # Initial conditions: state + identity matrix for tangent vectors
-        y0 = np.concatenate([initial_conditions.to_array(), np.eye(3).flatten()])
-
-        # Integration
-        t_span = (0, num_steps * dt)
-        t_eval = np.arange(0, num_steps * dt, dt)
-
-        sol = solve_ivp(
-            extended_system, t_span, y0, t_eval=t_eval, method='RK45', rtol=1e-8
-        )
-
-        # Extract and orthogonalize tangent vectors
-        lyap_sums = np.zeros(3)
-
-        for i in range(1, len(sol.t)):
-            tangent_matrix = sol.y[3:, i].reshape(3, 3)
-
-            # QR decomposition for orthogonalization
-            Q, R = np.linalg.qr(tangent_matrix)
-
-            # Accumulate logarithms of diagonal elements
-            lyap_sums += np.log(np.abs(np.diag(R)))
-
-        # Calculate average growth rates
-        lyapunov_exponents = lyap_sums / (sol.t[-1])
-
-        return np.sort(lyapunov_exponents)[::-1]  # Sort in descending order
+        return stability.lyapunov_exponents(self, initial_conditions, dt, num_steps)
 
     def poincare_section(
         self,

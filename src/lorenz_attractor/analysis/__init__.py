@@ -1,3 +1,5 @@
-"""Advanced analysis components."""
+"""Analysis tools for the Lorenz system."""
 
-pass
+from .stability import equilibrium_points, jacobian, lyapunov_exponents
+
+__all__ = ['jacobian', 'equilibrium_points', 'lyapunov_exponents']
