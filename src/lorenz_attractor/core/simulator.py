@@ -13,6 +13,7 @@ from ..integration.integrators import (
     EulerIntegrator,
     RungeKutta4Integrator,
 )
+from ..analysis import sweeps
 from .lorenz import LorenzSystem
 from .parameters import InitialConditions, LorenzParameters, SimulationConfig
 
@@ -203,26 +204,9 @@ class Simulator:
         Returns:
             List of simulation results for each parameter value
         """
-        original_params = self.system.parameters
-        results = []
-
-        for param_value in parameter_values:
-            # Create new parameters
-            params_dict = original_params.to_dict()
-            params_dict[parameter_name] = param_value
-            new_params = LorenzParameters.from_dict(params_dict)
-
-            # Update system
-            self.system.update_parameters(new_params)
-
-            # Simulate
-            result = self.simulate(initial_conditions, config)
-            results.append(result)
-
-        # Restore original parameters
-        self.system.update_parameters(original_params)
-
-        return results
+        return sweeps.parameter_sweep(
+            self, parameter_name, parameter_values, initial_conditions, config
+        )
 
     def bifurcation_analysis(
         self,
@@ -245,33 +229,10 @@ class Simulator:
         Returns:
             Dictionary with parameter values and corresponding attractors
         """
-        if initial_conditions is None:
-            initial_conditions = InitialConditions.random()
-
-        if config is None:
-            config = SimulationConfig(num_steps=20000)
-
-        # Create parameter array
-        param_min, param_max = parameter_range
-        param_values = np.linspace(param_min, param_max, num_points)
-
-        # Run parameter sweep
-        results = self.parameter_sweep(
-            parameter_name, param_values, initial_conditions, config
+        return sweeps.bifurcation_analysis(
+            self, parameter_name, parameter_range, num_points,
+            initial_conditions, config,
         )
-
-        # Extract attractor points (last 1000 points of each simulation)
-        attractors = []
-        for result in results:
-            # Take last points after transient
-            attractor_points = result.trajectory[-1000:]
-            attractors.append(attractor_points)
-
-        return {
-            'parameter_values': param_values,
-            'attractors': attractors,
-            'parameter_name': parameter_name,
-        }
 
     def sensitivity_analysis(
         self,
@@ -290,48 +251,9 @@ class Simulator:
         Returns:
             Dictionary with sensitivity analysis results
         """
-        if config is None:
-            config = SimulationConfig()
-
-        # Original trajectory
-        original_result = self.simulate(initial_conditions, config)
-
-        # Perturbed trajectories
-        perturbed_ics = [
-            InitialConditions(
-                initial_conditions.x + perturbation,
-                initial_conditions.y,
-                initial_conditions.z,
-            ),
-            InitialConditions(
-                initial_conditions.x,
-                initial_conditions.y + perturbation,
-                initial_conditions.z,
-            ),
-            InitialConditions(
-                initial_conditions.x,
-                initial_conditions.y,
-                initial_conditions.z + perturbation,
-            ),
-        ]
-
-        perturbed_results = self.simulate_multiple(perturbed_ics, config)
-
-        # Calculate divergence
-        divergences = []
-        for result in perturbed_results:
-            diff = np.linalg.norm(
-                result.trajectory - original_result.trajectory, axis=1
-            )
-            divergences.append(diff)
-
-        return {
-            'original_trajectory': original_result.trajectory,
-            'perturbed_trajectories': [r.trajectory for r in perturbed_results],
-            'divergences': divergences,
-            'time': original_result.time,
-            'perturbation': perturbation,
-        }
+        return sweeps.sensitivity_analysis(
+            self, initial_conditions, perturbation, config
+        )
 
     def estimate_lyapunov_exponent(
         self, initial_conditions: InitialConditions, config: SimulationConfig = None
