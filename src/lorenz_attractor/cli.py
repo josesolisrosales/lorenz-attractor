@@ -277,7 +277,7 @@ def cmd_simulate(args: Any) -> None:
 
     # Export data
     if args.export_data:
-        exporter = DataExporter()  # type: ignore[no-untyped-call]  # export/data.py is out of this task's scope
+        exporter = DataExporter()
         exporter.export_csv(result, args.export_data)
         print(f"Data exported to {args.export_data}")
 

@@ -4,7 +4,7 @@ import json
 import pickle
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -23,12 +23,15 @@ from ..core.simulator import SimulationResult
 class DataExporter:
     """Export simulation data in various formats."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize data exporter."""
         pass
 
     def export_csv(
-        self, result: SimulationResult, filename: str, include_metadata: bool = True
+        self,
+        result: SimulationResult,
+        filename: Union[str, Path],
+        include_metadata: bool = True,
     ) -> str:
         """
         Export simulation result to CSV format.
@@ -68,10 +71,10 @@ class DataExporter:
         else:
             df.to_csv(filename, index=False)
 
-        return filename
+        return str(filename)
 
     def export_json(
-        self, result: SimulationResult, filename: str, compact: bool = False
+        self, result: SimulationResult, filename: Union[str, Path], compact: bool = False
     ) -> str:
         """
         Export simulation result to JSON format.
@@ -109,7 +112,7 @@ class DataExporter:
         with open(filename, 'w') as f:
             json.dump(data, f, indent=indent)
 
-        return filename
+        return str(filename)
 
     def export_hdf5(self, result: SimulationResult, filename: str) -> str:
         """
@@ -170,7 +173,7 @@ class DataExporter:
 
         return filename
 
-    def export_numpy(self, result: SimulationResult, filename: str) -> str:
+    def export_numpy(self, result: SimulationResult, filename: Union[str, Path]) -> str:
         """
         Export simulation result to NumPy format.
 
@@ -181,8 +184,9 @@ class DataExporter:
         Returns:
             Path to exported file
         """
-        # Create structured array
-        data = {
+        # Build keyword args with numpy-compatible types only; dicts are
+        # stored via allow_pickle semantics which numpy accepts at runtime.
+        kwargs: Dict[str, Any] = {
             'time': result.time,
             'trajectory': result.trajectory,
             'parameters': result.parameters.to_dict(),
@@ -191,8 +195,8 @@ class DataExporter:
             'metadata': result.metadata,
         }
 
-        np.savez_compressed(filename, **data)
-        return filename
+        np.savez_compressed(filename, **kwargs)
+        return str(filename)
 
     def export_matlab(self, result: SimulationResult, filename: str) -> str:
         """

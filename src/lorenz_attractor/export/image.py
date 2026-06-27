@@ -9,7 +9,7 @@ from ..visualization.plotter import LorenzPlotter
 class ImageExporter:
     """Export high-quality images of simulations."""
 
-    def __init__(self, dpi: int = 300):
+    def __init__(self, dpi: int = 300) -> None:
         """Initialize image exporter."""
         self.dpi = dpi
         self.plotter = LorenzPlotter(dpi=dpi)
