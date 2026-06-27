@@ -35,11 +35,7 @@ def jacobian(
 
 def equilibrium_points(system: 'LorenzSystem') -> List[np.ndarray]:
     """Return the equilibrium points: origin always, plus C+/C- when rho > 1."""
-    sigma, rho, beta = (
-        system.parameters.sigma,
-        system.parameters.rho,
-        system.parameters.beta,
-    )
+    rho, beta = system.parameters.rho, system.parameters.beta
     equilibria: List[np.ndarray] = [np.array([0.0, 0.0, 0.0])]
     if rho > 1:
         sqrt_term = np.sqrt(beta * (rho - 1))

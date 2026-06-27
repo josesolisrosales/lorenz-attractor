@@ -37,6 +37,11 @@ def test_lorenzsystem_methods_delegate_identically():
     eqs_func = stability.equilibrium_points(system)
     for a, b in zip(eqs_method, eqs_func):
         np.testing.assert_array_equal(a, b)
+    # Verify lyapunov_exponents delegates identically
+    initial_conditions = InitialConditions(1.0, 1.0, 1.0)
+    lyap_method = system.lyapunov_exponents(initial_conditions, dt=0.01, num_steps=200)
+    lyap_func = stability.lyapunov_exponents(system, initial_conditions, dt=0.01, num_steps=200)
+    np.testing.assert_allclose(lyap_method, lyap_func, rtol=1e-10)
 
 
 @pytest.mark.slow
