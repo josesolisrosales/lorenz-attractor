@@ -71,12 +71,12 @@ class InteractiveVisualizer:
             result = self.simulator.simulate(initial_conditions, config)
             new_trajectory = result.trajectory
 
-            if self.line is not None:
-                self.line.set_data_3d(
-                    new_trajectory[:, 0], new_trajectory[:, 1], new_trajectory[:, 2]
-                )
-            if self.fig is not None:
-                self.fig.canvas.draw()
+            assert self.line is not None
+            self.line.set_data_3d(
+                new_trajectory[:, 0], new_trajectory[:, 1], new_trajectory[:, 2]
+            )
+            assert self.fig is not None
+            self.fig.canvas.draw()
 
         slider_sigma.on_changed(update)
         slider_rho.on_changed(update)
