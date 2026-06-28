@@ -291,8 +291,8 @@ class OpenGLRenderer:
 
     def render_axes(self, length: float = 30.0) -> None:
         """Render coordinate axes."""
-        assert self.ctx is not None
-        assert self.program is not None
+        if not self.ctx or not self.program:
+            raise RuntimeError("OpenGL context not initialized")
 
         # Axes vertices
         axes_vertices = np.array(
