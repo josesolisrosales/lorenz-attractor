@@ -380,7 +380,9 @@ def create_app() -> dash.Dash:
         ],
         [Input('random-ic-button', 'n_clicks')],
     )
-    def generate_random_initial_conditions(n_clicks: Optional[int]) -> Tuple[float, float, float]:
+    def generate_random_initial_conditions(
+        n_clicks: Optional[int],
+    ) -> Tuple[float, float, float]:
         if n_clicks is None:
             return 1.0, 1.0, 1.0
 
@@ -752,7 +754,9 @@ def create_app() -> dash.Dash:
             Input('stop-realtime-button', 'n_clicks'),
         ],
     )
-    def control_realtime(start_clicks: Optional[int], stop_clicks: Optional[int]) -> bool:
+    def control_realtime(
+        start_clicks: Optional[int], stop_clicks: Optional[int]
+    ) -> bool:
         ctx = callback_context
         if not ctx.triggered:
             return True
@@ -772,7 +776,7 @@ def create_app() -> dash.Dash:
 def main() -> None:
     """Main function to run the web application."""
     app = create_app()
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run_server(debug=True, host='0.0.0.0', port=8050)  # nosec B104
 
 
 if __name__ == '__main__':

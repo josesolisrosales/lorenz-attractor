@@ -275,12 +275,16 @@ class HighPerformanceRK4Integrator(BaseIntegrator):
         super().__init__(dt)
         self._compiled_step = self._compile_step()
 
-    def _compile_step(self) -> Callable[[_IntegratorFunc, np.ndarray, float], np.ndarray]:
+    def _compile_step(
+        self,
+    ) -> Callable[[_IntegratorFunc, np.ndarray, float], np.ndarray]:
         """Compile the integration step for performance."""
         dt = self.dt
 
         @jit(nopython=True)  # type: ignore[untyped-decorator]  # numba ships no stubs
-        def step_function(f_func: Callable[..., np.ndarray], y: np.ndarray, t: float) -> np.ndarray:  # noqa: E501
+        def step_function(
+            f_func: Callable[..., np.ndarray], y: np.ndarray, t: float
+        ) -> np.ndarray:  # noqa: E501
             """Compiled RK4 step."""
             k1 = f_func(y)
             k2 = f_func(y + dt / 2 * k1)

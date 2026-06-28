@@ -283,9 +283,12 @@ class Simulator:
             config = SimulationConfig(num_steps=50000)
 
         # Use system's built-in method
-        return cast(float, self.system.lyapunov_exponents(
-            initial_conditions, config.dt, config.num_steps
-        )[0])
+        return cast(
+            float,
+            self.system.lyapunov_exponents(
+                initial_conditions, config.dt, config.num_steps
+            )[0],
+        )
 
     def __repr__(self) -> str:
         """String representation."""

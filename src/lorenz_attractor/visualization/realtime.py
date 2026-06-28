@@ -106,7 +106,9 @@ class RealtimeVisualizer:
 
         def update_frame(frame: int) -> Tuple[Any, Any]:
             # Simulate next step
-            assert self.current_state is not None
+            assert (
+                self.current_state is not None
+            )  # nosec B101 - type narrowing for Optional; current_state is set during simulate() before this callback fires
             dt = config.dt
             derivative = self.simulator.system.derivative(self.current_state)
             self.current_state += derivative * dt
@@ -189,7 +191,9 @@ class RealtimeVisualizer:
         clock = pygame.time.Clock()
 
         while self.is_running:  # pragma: no cover
-            assert self.current_state is not None
+            assert (
+                self.current_state is not None
+            )  # nosec B101 - type narrowing for Optional; current_state is always set before the loop starts
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
@@ -280,7 +284,9 @@ class RealtimeVisualizer:
 
     def _draw_current_point_opengl(self) -> None:
         """Draw current point using OpenGL."""
-        assert self.current_state is not None
+        assert (
+            self.current_state is not None
+        )  # nosec B101 - type narrowing for Optional; current_state is always set before rendering loop calls this method
         glPointSize(8)
         glColor3f(1, 0, 0)  # Red
         glBegin(GL_POINTS)
@@ -351,7 +357,9 @@ class RealtimeVisualizer:
         clock = pygame.time.Clock()
 
         while self.is_running:  # pragma: no cover
-            assert self.current_state is not None
+            assert (
+                self.current_state is not None
+            )  # nosec B101 - type narrowing for Optional; current_state is always set before the OpenGL loop starts
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
@@ -473,7 +481,9 @@ class StreamingVisualizer:
                         'z': current_state[2],
                     }
                 )
-            except Exception:
+            except (
+                Exception
+            ):  # nosec B110 - queue.put() raises queue.Full; silently dropping points when the buffer is full is the intended behaviour for real-time streaming
                 # Queue is full, skip this point
                 pass
 

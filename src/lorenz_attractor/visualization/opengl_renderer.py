@@ -49,7 +49,9 @@ class OpenGLRenderer:
 
     def _create_shader_program(self) -> None:
         """Create shader program for trajectory rendering."""
-        assert self.ctx is not None
+        assert (
+            self.ctx is not None
+        )  # nosec B101 - type narrowing for Optional; ctx is always initialised before _create_shader_program is called
         vertex_shader = '''
         #version 330 core
 

@@ -74,7 +74,10 @@ class DataExporter:
         return str(filename)
 
     def export_json(
-        self, result: SimulationResult, filename: Union[str, Path], compact: bool = False
+        self,
+        result: SimulationResult,
+        filename: Union[str, Path],
+        compact: bool = False,
     ) -> str:
         """
         Export simulation result to JSON format.

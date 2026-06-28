@@ -13,7 +13,9 @@ from ..core.simulator import Simulator
 class InteractiveVisualizer:
     """Interactive 3D visualization with parameter controls."""
 
-    def __init__(self, sigma: float = 10.0, rho: float = 28.0, beta: float = 8.0 / 3.0) -> None:
+    def __init__(
+        self, sigma: float = 10.0, rho: float = 28.0, beta: float = 8.0 / 3.0
+    ) -> None:
         self.sigma = sigma
         self.rho = rho
         self.beta = beta
@@ -71,11 +73,15 @@ class InteractiveVisualizer:
             result = self.simulator.simulate(initial_conditions, config)
             new_trajectory = result.trajectory
 
-            assert self.line is not None
+            assert (
+                self.line is not None
+            )  # nosec B101 - type narrowing for Optional; line is set in create_interactive_plot before this callback is registered
             self.line.set_data_3d(
                 new_trajectory[:, 0], new_trajectory[:, 1], new_trajectory[:, 2]
             )
-            assert self.fig is not None
+            assert (
+                self.fig is not None
+            )  # nosec B101 - type narrowing for Optional; fig is set in create_interactive_plot before this callback is registered
             self.fig.canvas.draw()
 
         slider_sigma.on_changed(update)
