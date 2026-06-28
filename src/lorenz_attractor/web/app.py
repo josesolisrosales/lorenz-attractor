@@ -1,6 +1,7 @@
 """Web application for interactive Lorenz attractor exploration."""
 
 import json
+from typing import Any, Optional, Tuple
 
 import dash
 import numpy as np
@@ -379,7 +380,7 @@ def create_app() -> dash.Dash:
         ],
         [Input('random-ic-button', 'n_clicks')],
     )
-    def generate_random_initial_conditions(n_clicks):
+    def generate_random_initial_conditions(n_clicks: Optional[int]) -> Tuple[float, float, float]:
         if n_clicks is None:
             return 1.0, 1.0, 1.0
 
@@ -403,8 +404,17 @@ def create_app() -> dash.Dash:
         ],
     )
     def run_simulation(
-        n_clicks, sigma, rho, beta, x0, y0, z0, integration_method, num_steps, dt
-    ):
+        n_clicks: Optional[int],
+        sigma: float,
+        rho: float,
+        beta: float,
+        x0: float,
+        y0: float,
+        z0: float,
+        integration_method: str,
+        num_steps: int,
+        dt: float,
+    ) -> str:
         if n_clicks is None:
             return json.dumps({})
 
@@ -437,7 +447,7 @@ def create_app() -> dash.Dash:
         Output('plot-container', 'children'),
         [Input('viz-tabs', 'value'), Input('simulation-data', 'children')],
     )
-    def update_visualization(active_tab, simulation_data):
+    def update_visualization(active_tab: str, simulation_data: Optional[str]) -> Any:
         if not simulation_data:
             return html.Div(
                 "Run a simulation to see results.",
@@ -709,7 +719,7 @@ def create_app() -> dash.Dash:
     @app.callback(
         Output('system-info', 'children'), [Input('simulation-data', 'children')]
     )
-    def update_system_info(simulation_data):
+    def update_system_info(simulation_data: Optional[str]) -> Any:
         if not simulation_data:
             return "No simulation data available."
 
@@ -742,7 +752,7 @@ def create_app() -> dash.Dash:
             Input('stop-realtime-button', 'n_clicks'),
         ],
     )
-    def control_realtime(start_clicks, stop_clicks):
+    def control_realtime(start_clicks: Optional[int], stop_clicks: Optional[int]) -> bool:
         ctx = callback_context
         if not ctx.triggered:
             return True
@@ -759,7 +769,7 @@ def create_app() -> dash.Dash:
     return app
 
 
-def main():
+def main() -> None:
     """Main function to run the web application."""
     app = create_app()
     app.run_server(debug=True, host='0.0.0.0', port=8050)
