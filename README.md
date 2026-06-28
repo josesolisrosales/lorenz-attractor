@@ -25,7 +25,7 @@ A comprehensive, professional-grade simulation and visualization toolkit for the
 ### Advanced Analysis
 - **Parameter Sweeps**: Automated exploration of parameter space
 - **Bifurcation Analysis**: Comprehensive bifurcation diagram generation
-- **Lyapunov Exponents**: Accurate calculation of system stability measures  
+- **Lyapunov Exponents**: Lyapunov exponent estimation (simplified Benettin method; values are approximate — rigorous re-orthogonalization is planned)
 - **Poincaré Sections**: Phase space cross-sections for detailed analysis
 - **Sensitivity Analysis**: Butterfly effect demonstration and quantification
 
@@ -144,23 +144,22 @@ The package is organized into modular components:
 
 ```
 lorenz_attractor/
-├── core/           # Core simulation engine
-│   ├── lorenz.py   # Lorenz system implementation
-│   ├── simulator.py # Simulation orchestration
-│   └── parameters.py # Parameter management
+├── core/           # System, simulator, parameters
+│   ├── lorenz.py
+│   ├── simulator.py
+│   └── parameters.py
+├── analysis/       # stability.py, sections.py, sweeps.py
 ├── integration/    # Numerical integration methods
 ├── visualization/  # Plotting and real-time graphics
-├── export/         # Data and video export
-├── analysis/       # Advanced analysis tools
-├── web/           # Web interface
-└── utils/         # Utility functions
+├── export/         # Data, image, and video export
+└── web/            # Dash web interface
 ```
 
 ## 🎯 Advanced Features
 
 ### Performance Optimization
 - Numba JIT compilation for critical loops
-- Parallel simulation execution
+- Concurrent (thread-based) simulation execution via `ThreadPoolExecutor` (CPU-bound runs are subject to the GIL; true multi-core speedup requires a process-based approach)
 - Memory-efficient data structures
 - Optimized integration algorithms
 
@@ -177,6 +176,8 @@ lorenz_attractor/
 - Modular analysis components
 
 ## 📈 Performance
+
+> **Indicative only** — measured informally on unspecified hardware; these numbers are not part of CI and may not reflect your environment.
 
 Typical performance on modern hardware:
 - **Basic simulation** (10k points): ~0.1 seconds
