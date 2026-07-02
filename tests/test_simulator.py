@@ -1,5 +1,6 @@
 """Tests for the Simulator orchestration layer."""
 
+import numpy as np
 import pytest
 
 from lorenz_attractor.core.parameters import InitialConditions, SimulationConfig
@@ -14,3 +15,4 @@ def test_all_advertised_methods_run_end_to_end(method):
     result = sim.simulate(ic, config)
     assert result.trajectory.shape[1] == 3
     assert result.trajectory.shape[0] > 0
+    assert np.all(np.isfinite(result.trajectory))

@@ -235,5 +235,5 @@ def test_adaptive_is_a_valid_integration_method():
 
 def test_rk45_is_not_a_valid_integration_method():
     # 'rk45' is not implemented by the simulator and must be rejected.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='integration_method must be one of'):
         SimulationConfig(integration_method='rk45')
