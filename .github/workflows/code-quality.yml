@@ -37,7 +37,11 @@ jobs:
 
     - name: Type check with mypy
       run: |
-        mypy src/lorenz_attractor --strict --ignore-missing-imports
+        # --no-warn-unused-ignores AFTER --strict: numba ships no stubs, so the
+        # `# type: ignore` comments its @jit decorators need are used/unused
+        # depending on the resolved numba/mypy versions. --strict re-enables the
+        # check (overriding pyproject), so disable it here for a stable gate.
+        mypy src/lorenz_attractor --strict --ignore-missing-imports --no-warn-unused-ignores
 
     - name: Security check with bandit
       run: |

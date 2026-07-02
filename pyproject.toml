@@ -99,10 +99,11 @@ check_untyped_defs = true
 disallow_untyped_decorators = true
 no_implicit_optional = true
 warn_redundant_casts = true
-# numba ships no type stubs, so the `# type: ignore` comments needed for its
-# untyped @jit decorators are "used" or "unused" depending on the resolved
-# numba/mypy versions. Keeping this true made CI flaky across dependency
-# updates (see the numba ignores in core/lorenz.py, integration/integrators.py).
+# numba ships no type stubs, so the `# type: ignore` comments its untyped @jit
+# decorators need are "used" or "unused" depending on the resolved numba/mypy
+# versions (see core/lorenz.py, integration/integrators.py) — flagging them made
+# CI flaky across dependency updates. NOTE: `--strict` on the CLI re-enables this,
+# so the CI workflow also passes `--no-warn-unused-ignores` after `--strict`.
 warn_unused_ignores = false
 warn_no_return = true
 warn_unreachable = true
