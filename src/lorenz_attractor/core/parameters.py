@@ -1,7 +1,7 @@
 """Parameter management for Lorenz system simulations."""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
 
@@ -14,7 +14,7 @@ class LorenzParameters:
     rho: float = 28.0
     beta: float = 8.0 / 3.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate parameters after initialization."""
         if self.sigma <= 0:
             raise ValueError("sigma must be positive")
@@ -38,12 +38,12 @@ class LorenzParameters:
         """Returns parameters for fixed point behavior."""
         return cls(sigma=10.0, rho=0.5, beta=8.0 / 3.0)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, float]:
         """Convert parameters to dictionary."""
         return {'sigma': self.sigma, 'rho': self.rho, 'beta': self.beta}
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'LorenzParameters':
+    def from_dict(cls, data: Dict[str, float]) -> 'LorenzParameters':
         """Create parameters from dictionary."""
         return cls(**data)
 
@@ -101,7 +101,7 @@ class SimulationConfig:
     integration_method: str = "rk4"
     save_interval: int = 1
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate configuration after initialization."""
         if self.dt <= 0:
             raise ValueError("dt must be positive")
@@ -110,7 +110,7 @@ class SimulationConfig:
         if self.save_interval <= 0:
             raise ValueError("save_interval must be positive")
 
-        valid_methods = ["euler", "rk4", "rk45", "dopri5"]
+        valid_methods = ["euler", "rk4", "adaptive", "dopri5"]
         if self.integration_method not in valid_methods:
             raise ValueError(f"integration_method must be one of {valid_methods}")
 
@@ -124,7 +124,7 @@ class SimulationConfig:
         """Time array for the simulation."""
         return np.arange(0, self.total_time, self.dt)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
             'dt': self.dt,
@@ -134,6 +134,6 @@ class SimulationConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'SimulationConfig':
+    def from_dict(cls, data: Dict[str, Any]) -> 'SimulationConfig':
         """Create configuration from dictionary."""
         return cls(**data)

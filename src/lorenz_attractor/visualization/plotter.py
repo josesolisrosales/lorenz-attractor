@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
+import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
@@ -31,7 +32,7 @@ class LorenzPlotter:
         self.dpi = dpi
         self._setup_style()
 
-    def _setup_style(self):
+    def _setup_style(self) -> None:
         """Setup plotting style."""
         if self.style == 'dark':
             plt.style.use('dark_background')
@@ -64,7 +65,7 @@ class LorenzPlotter:
         show_axes: bool = True,
         save_path: Optional[str] = None,
         fast_mode: bool = True,
-    ) -> plt.Figure:
+    ) -> matplotlib.figure.Figure:
         """
         Plot 3D trajectory of the Lorenz attractor.
 
@@ -161,7 +162,7 @@ class LorenzPlotter:
         result: SimulationResult,
         title: str = "Lorenz Attractor Projections",
         save_path: Optional[str] = None,
-    ) -> plt.Figure:
+    ) -> matplotlib.figure.Figure:
         """
         Plot 2D projections of the trajectory.
 
@@ -214,9 +215,9 @@ class LorenzPlotter:
     def plot_phase_space(
         self,
         result: SimulationResult,
-        poincare_plane: Optional[Dict] = None,
+        poincare_plane: Optional[Dict[str, Any]] = None,
         save_path: Optional[str] = None,
-    ) -> plt.Figure:
+    ) -> matplotlib.figure.Figure:
         """
         Plot phase space analysis including Poincaré sections.
 
@@ -351,7 +352,7 @@ class LorenzPlotter:
         parameter_name: str,
         parameter_values: np.ndarray,
         save_path: Optional[str] = None,
-    ) -> plt.Figure:
+    ) -> matplotlib.figure.Figure:
         """
         Plot results from parameter sweep.
 
@@ -399,7 +400,7 @@ class LorenzPlotter:
                 result.z,
                 alpha=0.7,
                 linewidth=0.5,
-                label=f'{parameter_name}={parameter_values[i*len(results)//5]:.2f}',
+                label=f'{parameter_name}={parameter_values[i * len(results) // 5]:.2f}',
             )
         axes[1, 1].set_xlabel('Time')
         axes[1, 1].set_ylabel('Z')
@@ -417,7 +418,7 @@ class LorenzPlotter:
 
     def plot_bifurcation_diagram(
         self, bifurcation_data: Dict[str, Any], save_path: Optional[str] = None
-    ) -> plt.Figure:
+    ) -> matplotlib.figure.Figure:
         """
         Plot bifurcation diagram.
 
@@ -463,7 +464,7 @@ class LorenzPlotter:
 
     def plot_sensitivity_analysis(
         self, sensitivity_data: Dict[str, Any], save_path: Optional[str] = None
-    ) -> plt.Figure:
+    ) -> matplotlib.figure.Figure:
         """
         Plot sensitivity analysis results.
 

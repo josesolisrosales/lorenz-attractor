@@ -1,6 +1,6 @@
 """Core Lorenz system implementation with advanced features."""
 
-from typing import Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 from numba import jit
@@ -30,7 +30,7 @@ class LorenzSystem:
         self.parameters = parameters or LorenzParameters.classical()
         self._compiled_derivative = self._compile_derivative()
 
-    def _compile_derivative(self):
+    def _compile_derivative(self) -> Callable[[np.ndarray], np.ndarray]:
         """Compile the derivative function for performance."""
         sigma, rho, beta = (
             self.parameters.sigma,
@@ -38,7 +38,7 @@ class LorenzSystem:
             self.parameters.beta,
         )
 
-        @jit(nopython=True)
+        @jit(nopython=True)  # type: ignore[untyped-decorator]  # numba ships no stubs
         def derivative(state: np.ndarray) -> np.ndarray:
             """Compute derivatives of the Lorenz system."""
             x, y, z = state
@@ -49,7 +49,7 @@ class LorenzSystem:
 
             return np.array([dx_dt, dy_dt, dz_dt])
 
-        return derivative
+        return derivative  # type: ignore[no-any-return]
 
     def derivative(
         self, state: Union[np.ndarray, Tuple[float, float, float]]
@@ -80,47 +80,20 @@ class LorenzSystem:
         Returns:
             3x3 Jacobian matrix
         """
-        if isinstance(state, tuple):
-            state = np.array(state)
+        from ..analysis import stability
 
-        x, y, z = state
-        sigma, rho, beta = (
-            self.parameters.sigma,
-            self.parameters.rho,
-            self.parameters.beta,
-        )
+        return stability.jacobian(self, state)
 
-        J = np.array([[-sigma, sigma, 0], [rho - z, -1, -x], [y, x, -beta]])
-
-        return J
-
-    def equilibrium_points(self) -> list:
+    def equilibrium_points(self) -> List[np.ndarray]:
         """
         Calculate equilibrium points of the system.
 
         Returns:
             List of equilibrium points as numpy arrays
         """
-        sigma, rho, beta = (
-            self.parameters.sigma,
-            self.parameters.rho,
-            self.parameters.beta,
-        )
+        from ..analysis import stability
 
-        # Origin is always an equilibrium point
-        equilibria = [np.array([0.0, 0.0, 0.0])]
-
-        # For rho > 1, there are two additional equilibria
-        if rho > 1:
-            sqrt_term = np.sqrt(beta * (rho - 1))
-
-            # C+ equilibrium
-            equilibria.append(np.array([sqrt_term, sqrt_term, rho - 1]))
-
-            # C- equilibrium
-            equilibria.append(np.array([-sqrt_term, -sqrt_term, rho - 1]))
-
-        return equilibria
+        return stability.equilibrium_points(self)
 
     def lyapunov_exponents(
         self,
@@ -139,54 +112,9 @@ class LorenzSystem:
         Returns:
             Array of three Lyapunov exponents
         """
-        # This is a simplified implementation
-        # For production use, consider using more sophisticated methods
+        from ..analysis import stability
 
-        from scipy.integrate import solve_ivp
-
-        def extended_system(t, y):
-            """Extended system for Lyapunov exponent calculation."""
-            state = y[:3]
-            tangent_vectors = y[3:].reshape(3, 3)
-
-            # System derivative
-            f = self.derivative(state)
-
-            # Jacobian
-            J = self.jacobian(state)
-
-            # Tangent vector derivatives
-            tangent_derivatives = J @ tangent_vectors
-
-            return np.concatenate([f, tangent_derivatives.flatten()])
-
-        # Initial conditions: state + identity matrix for tangent vectors
-        y0 = np.concatenate([initial_conditions.to_array(), np.eye(3).flatten()])
-
-        # Integration
-        t_span = (0, num_steps * dt)
-        t_eval = np.arange(0, num_steps * dt, dt)
-
-        sol = solve_ivp(
-            extended_system, t_span, y0, t_eval=t_eval, method='RK45', rtol=1e-8
-        )
-
-        # Extract and orthogonalize tangent vectors
-        lyap_sums = np.zeros(3)
-
-        for i in range(1, len(sol.t)):
-            tangent_matrix = sol.y[3:, i].reshape(3, 3)
-
-            # QR decomposition for orthogonalization
-            Q, R = np.linalg.qr(tangent_matrix)
-
-            # Accumulate logarithms of diagonal elements
-            lyap_sums += np.log(np.abs(np.diag(R)))
-
-        # Calculate average growth rates
-        lyapunov_exponents = lyap_sums / (sol.t[-1])
-
-        return np.sort(lyapunov_exponents)[::-1]  # Sort in descending order
+        return stability.lyapunov_exponents(self, initial_conditions, dt, num_steps)
 
     def poincare_section(
         self,
@@ -205,26 +133,11 @@ class LorenzSystem:
         Returns:
             Array of intersection points
         """
-        plane_normal = plane_normal / np.linalg.norm(plane_normal)
+        from ..analysis import sections
 
-        intersections = []
+        return sections.poincare_section(trajectory, plane_normal, plane_offset)
 
-        for i in range(len(trajectory) - 1):
-            p1, p2 = trajectory[i], trajectory[i + 1]
-
-            # Check if trajectory crosses the plane
-            d1 = np.dot(p1, plane_normal) - plane_offset
-            d2 = np.dot(p2, plane_normal) - plane_offset
-
-            if d1 * d2 < 0:  # Sign change indicates crossing
-                # Linear interpolation to find intersection
-                t = -d1 / (d2 - d1)
-                intersection = p1 + t * (p2 - p1)
-                intersections.append(intersection)
-
-        return np.array(intersections) if intersections else np.array([]).reshape(0, 3)
-
-    def update_parameters(self, new_parameters: LorenzParameters):
+    def update_parameters(self, new_parameters: LorenzParameters) -> None:
         """
         Update system parameters and recompile derivative function.
 

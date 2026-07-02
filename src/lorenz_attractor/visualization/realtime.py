@@ -3,7 +3,7 @@
 import threading
 import time
 from queue import Queue
-from typing import List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import matplotlib.pyplot as plt
 import moderngl
@@ -50,7 +50,7 @@ from ..core.simulator import Simulator
 class RealtimeVisualizer:
     """Real-time visualization of Lorenz attractor evolution."""
 
-    def __init__(self, simulator: Simulator, trail_length: int = 2000):
+    def __init__(self, simulator: Simulator, trail_length: int = 2000) -> None:
         """
         Initialize real-time visualizer.
 
@@ -61,10 +61,10 @@ class RealtimeVisualizer:
         self.simulator = simulator
         self.trail_length = trail_length
         self.is_running = False
-        self.current_state = None
-        self.trajectory_buffer = []
-        self.time_buffer = []
-        self.current_time = 0
+        self.current_state: Optional[np.ndarray] = None
+        self.trajectory_buffer: List[np.ndarray] = []
+        self.time_buffer: List[float] = []
+        self.current_time: float = 0.0
 
     def start_matplotlib_animation(
         self,
@@ -104,8 +104,11 @@ class RealtimeVisualizer:
         ax.set_zlabel('Z')
         ax.set_title('Real-time Lorenz Attractor')
 
-        def update_frame(frame):
+        def update_frame(frame: int) -> Tuple[Any, Any]:
             # Simulate next step
+            assert (
+                self.current_state is not None
+            )  # nosec B101 - type narrowing for Optional; current_state is set during simulate() before this callback fires
             dt = config.dt
             derivative = self.simulator.system.derivative(self.current_state)
             self.current_state += derivative * dt
@@ -148,7 +151,7 @@ class RealtimeVisualizer:
         initial_conditions: InitialConditions,
         config: SimulationConfig,
         window_size: Tuple[int, int] = (1200, 800),
-    ):
+    ) -> None:
         """
         Start real-time visualization using Pygame and OpenGL.
 
@@ -159,7 +162,7 @@ class RealtimeVisualizer:
         """
         # Initialize Pygame
         pygame.init()
-        display = pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
+        pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
         pygame.display.set_caption("Real-time Lorenz Attractor")
 
         # OpenGL setup
@@ -181,13 +184,16 @@ class RealtimeVisualizer:
         self.is_running = True
 
         # Camera parameters
-        camera_distance = 80
-        camera_angle_x = 0
-        camera_angle_y = 0
+        camera_distance = 80.0
+        camera_angle_x = 0.0
+        camera_angle_y = 0.0
 
         clock = pygame.time.Clock()
 
-        while self.is_running:
+        while self.is_running:  # pragma: no cover
+            assert (
+                self.current_state is not None
+            )  # nosec B101 - type narrowing for Optional; current_state is always set before the loop starts
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
@@ -241,7 +247,7 @@ class RealtimeVisualizer:
 
         pygame.quit()
 
-    def _draw_axes(self):
+    def _draw_axes(self) -> None:
         """Draw coordinate axes."""
         glLineWidth(2)
         glBegin(GL_LINES)
@@ -263,7 +269,7 @@ class RealtimeVisualizer:
 
         glEnd()
 
-    def _draw_trajectory_opengl(self):
+    def _draw_trajectory_opengl(self) -> None:
         """Draw trajectory using OpenGL."""
         glLineWidth(1)
         glBegin(GL_LINE_STRIP)
@@ -276,8 +282,11 @@ class RealtimeVisualizer:
 
         glEnd()
 
-    def _draw_current_point_opengl(self):
+    def _draw_current_point_opengl(self) -> None:
         """Draw current point using OpenGL."""
+        assert (
+            self.current_state is not None
+        )  # nosec B101 - type narrowing for Optional; current_state is always set before rendering loop calls this method
         glPointSize(8)
         glColor3f(1, 0, 0)  # Red
         glBegin(GL_POINTS)
@@ -289,7 +298,7 @@ class RealtimeVisualizer:
         initial_conditions: InitialConditions,
         config: SimulationConfig,
         window_size: Tuple[int, int] = (1200, 800),
-    ):
+    ) -> None:
         """
         Start high-performance visualization using ModernGL.
 
@@ -300,7 +309,7 @@ class RealtimeVisualizer:
         """
         # Initialize Pygame for window management
         pygame.init()
-        display = pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
+        pygame.display.set_mode(window_size, pygame.DOUBLEBUF | pygame.OPENGL)
         pygame.display.set_caption("High-Performance Lorenz Attractor")
 
         # Create ModernGL context
@@ -309,14 +318,14 @@ class RealtimeVisualizer:
         # Vertex shader
         vertex_shader = '''
         #version 330 core
-        
+
         in vec3 in_position;
         in float in_alpha;
-        
+
         uniform mat4 mvp;
-        
+
         out float alpha;
-        
+
         void main() {
             gl_Position = mvp * vec4(in_position, 1.0);
             alpha = in_alpha;
@@ -326,10 +335,10 @@ class RealtimeVisualizer:
         # Fragment shader
         fragment_shader = '''
         #version 330 core
-        
+
         in float alpha;
         out vec4 fragColor;
-        
+
         void main() {
             fragColor = vec4(0.0, 0.5, 1.0, alpha);
         }
@@ -347,7 +356,10 @@ class RealtimeVisualizer:
 
         clock = pygame.time.Clock()
 
-        while self.is_running:
+        while self.is_running:  # pragma: no cover
+            assert (
+                self.current_state is not None
+            )  # nosec B101 - type narrowing for Optional; current_state is always set before the OpenGL loop starts
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.is_running = False
@@ -387,7 +399,7 @@ class RealtimeVisualizer:
                 mvp[2, 2] = 0.02  # Scale Z
                 mvp[2, 3] = -0.5  # Translate Z
 
-                program['mvp'].write(mvp.tobytes())
+                cast(moderngl.Uniform, program['mvp']).write(mvp.tobytes())
 
                 # Clear and render
                 ctx.clear(0.0, 0.0, 0.0, 1.0)
@@ -406,7 +418,7 @@ class RealtimeVisualizer:
 
         pygame.quit()
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the real-time visualization."""
         self.is_running = False
 
@@ -414,7 +426,7 @@ class RealtimeVisualizer:
 class StreamingVisualizer:
     """Stream simulation data for real-time visualization."""
 
-    def __init__(self, simulator: Simulator, buffer_size: int = 10000):
+    def __init__(self, simulator: Simulator, buffer_size: int = 10000) -> None:
         """
         Initialize streaming visualizer.
 
@@ -424,13 +436,13 @@ class StreamingVisualizer:
         """
         self.simulator = simulator
         self.buffer_size = buffer_size
-        self.data_queue = Queue(maxsize=buffer_size)
+        self.data_queue: 'Queue[Dict[str, Any]]' = Queue(maxsize=buffer_size)
         self.is_streaming = False
-        self.stream_thread = None
+        self.stream_thread: Optional[threading.Thread] = None
 
     def start_streaming(
         self, initial_conditions: InitialConditions, config: SimulationConfig
-    ):
+    ) -> None:
         """
         Start streaming simulation data.
 
@@ -446,12 +458,12 @@ class StreamingVisualizer:
 
     def _stream_worker(
         self, initial_conditions: InitialConditions, config: SimulationConfig
-    ):
+    ) -> None:
         """Worker thread for streaming simulation data."""
         current_state = initial_conditions.to_array()
-        current_time = 0
+        current_time = 0.0
 
-        while self.is_streaming:
+        while self.is_streaming:  # pragma: no cover
             # Simulate next step
             dt = config.dt
             derivative = self.simulator.system.derivative(current_state)
@@ -469,14 +481,16 @@ class StreamingVisualizer:
                         'z': current_state[2],
                     }
                 )
-            except:
+            except (
+                Exception
+            ):  # nosec B110 - queue.put() raises queue.Full; silently dropping points when the buffer is full is the intended behaviour for real-time streaming
                 # Queue is full, skip this point
                 pass
 
             # Control simulation speed
             time.sleep(config.dt / 10)  # 10x real-time
 
-    def get_latest_data(self, num_points: int = 100) -> List[dict]:
+    def get_latest_data(self, num_points: int = 100) -> List[Dict[str, Any]]:
         """
         Get latest simulation data points.
 
@@ -486,23 +500,23 @@ class StreamingVisualizer:
         Returns:
             List of data points
         """
-        data_points = []
+        data_points: List[Dict[str, Any]] = []
 
         # Get all available data
         while not self.data_queue.empty() and len(data_points) < num_points:
             try:
                 data_points.append(self.data_queue.get_nowait())
-            except:
+            except Exception:
                 break
 
         return data_points
 
-    def stop_streaming(self):
+    def stop_streaming(self) -> None:
         """Stop streaming simulation data."""
         self.is_streaming = False
         if self.stream_thread:
             self.stream_thread.join()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup when object is destroyed."""
         self.stop_streaming()

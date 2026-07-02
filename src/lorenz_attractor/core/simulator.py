@@ -3,10 +3,11 @@
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import numpy as np
 
+from ..analysis import sweeps
 from ..integration.integrators import (
     AdaptiveIntegrator,
     DormandPrince54Integrator,
@@ -44,7 +45,9 @@ class SimulationResult:
         return self.trajectory[:, 2]
 
     def poincare_section(
-        self, plane_normal: np.ndarray = None, plane_offset: float = 27.0
+        self,
+        plane_normal: Optional[np.ndarray] = None,
+        plane_offset: float = 27.0,
     ) -> np.ndarray:
         """Compute Poincaré section."""
         if plane_normal is None:
@@ -53,16 +56,19 @@ class SimulationResult:
         system = LorenzSystem(self.parameters)
         return system.poincare_section(self.trajectory, plane_normal, plane_offset)
 
-    def save(self, filename: str):
+    def save(self, filename: str) -> None:
         """Save simulation results to file."""
+        parameters: np.ndarray = np.array(self.parameters.to_dict(), dtype=object)
+        config: np.ndarray = np.array(self.config.to_dict(), dtype=object)
+        metadata: np.ndarray = np.array(self.metadata, dtype=object)
         np.savez_compressed(
             filename,
             time=self.time,
             trajectory=self.trajectory,
-            parameters=self.parameters.to_dict(),
+            parameters=parameters,
             initial_conditions=self.initial_conditions.to_array(),
-            config=self.config.to_dict(),
-            metadata=self.metadata,
+            config=config,
+            metadata=metadata,
         )
 
     @classmethod
@@ -118,7 +124,7 @@ class Simulator:
         integrator = integrator_class(config.dt)
 
         # Define system function for integrator
-        def system_func(y, t):
+        def system_func(y: np.ndarray, t: float) -> np.ndarray:
             return self.system.derivative(y)
 
         # Integrate
@@ -203,35 +209,18 @@ class Simulator:
         Returns:
             List of simulation results for each parameter value
         """
-        original_params = self.system.parameters
-        results = []
-
-        for param_value in parameter_values:
-            # Create new parameters
-            params_dict = original_params.to_dict()
-            params_dict[parameter_name] = param_value
-            new_params = LorenzParameters.from_dict(params_dict)
-
-            # Update system
-            self.system.update_parameters(new_params)
-
-            # Simulate
-            result = self.simulate(initial_conditions, config)
-            results.append(result)
-
-        # Restore original parameters
-        self.system.update_parameters(original_params)
-
-        return results
+        return sweeps.parameter_sweep(
+            self, parameter_name, parameter_values, initial_conditions, config
+        )
 
     def bifurcation_analysis(
         self,
         parameter_name: str,
         parameter_range: Tuple[float, float],
         num_points: int = 100,
-        initial_conditions: InitialConditions = None,
-        config: SimulationConfig = None,
-    ) -> Dict[str, np.ndarray]:
+        initial_conditions: Optional[InitialConditions] = None,
+        config: Optional[SimulationConfig] = None,
+    ) -> Dict[str, Any]:
         """
         Perform bifurcation analysis.
 
@@ -245,39 +234,20 @@ class Simulator:
         Returns:
             Dictionary with parameter values and corresponding attractors
         """
-        if initial_conditions is None:
-            initial_conditions = InitialConditions.random()
-
-        if config is None:
-            config = SimulationConfig(num_steps=20000)
-
-        # Create parameter array
-        param_min, param_max = parameter_range
-        param_values = np.linspace(param_min, param_max, num_points)
-
-        # Run parameter sweep
-        results = self.parameter_sweep(
-            parameter_name, param_values, initial_conditions, config
+        return sweeps.bifurcation_analysis(
+            self,
+            parameter_name,
+            parameter_range,
+            num_points,
+            initial_conditions,
+            config,
         )
-
-        # Extract attractor points (last 1000 points of each simulation)
-        attractors = []
-        for result in results:
-            # Take last points after transient
-            attractor_points = result.trajectory[-1000:]
-            attractors.append(attractor_points)
-
-        return {
-            'parameter_values': param_values,
-            'attractors': attractors,
-            'parameter_name': parameter_name,
-        }
 
     def sensitivity_analysis(
         self,
         initial_conditions: InitialConditions,
         perturbation: float = 1e-10,
-        config: SimulationConfig = None,
+        config: Optional[SimulationConfig] = None,
     ) -> Dict[str, Any]:
         """
         Analyze sensitivity to initial conditions.
@@ -290,51 +260,14 @@ class Simulator:
         Returns:
             Dictionary with sensitivity analysis results
         """
-        if config is None:
-            config = SimulationConfig()
-
-        # Original trajectory
-        original_result = self.simulate(initial_conditions, config)
-
-        # Perturbed trajectories
-        perturbed_ics = [
-            InitialConditions(
-                initial_conditions.x + perturbation,
-                initial_conditions.y,
-                initial_conditions.z,
-            ),
-            InitialConditions(
-                initial_conditions.x,
-                initial_conditions.y + perturbation,
-                initial_conditions.z,
-            ),
-            InitialConditions(
-                initial_conditions.x,
-                initial_conditions.y,
-                initial_conditions.z + perturbation,
-            ),
-        ]
-
-        perturbed_results = self.simulate_multiple(perturbed_ics, config)
-
-        # Calculate divergence
-        divergences = []
-        for result in perturbed_results:
-            diff = np.linalg.norm(
-                result.trajectory - original_result.trajectory, axis=1
-            )
-            divergences.append(diff)
-
-        return {
-            'original_trajectory': original_result.trajectory,
-            'perturbed_trajectories': [r.trajectory for r in perturbed_results],
-            'divergences': divergences,
-            'time': original_result.time,
-            'perturbation': perturbation,
-        }
+        return sweeps.sensitivity_analysis(
+            self, initial_conditions, perturbation, config
+        )
 
     def estimate_lyapunov_exponent(
-        self, initial_conditions: InitialConditions, config: SimulationConfig = None
+        self,
+        initial_conditions: InitialConditions,
+        config: Optional[SimulationConfig] = None,
     ) -> float:
         """
         Estimate the largest Lyapunov exponent.
@@ -350,9 +283,12 @@ class Simulator:
             config = SimulationConfig(num_steps=50000)
 
         # Use system's built-in method
-        return self.system.lyapunov_exponents(
-            initial_conditions, config.dt, config.num_steps
-        )[0]
+        return cast(
+            float,
+            self.system.lyapunov_exponents(
+                initial_conditions, config.dt, config.num_steps
+            )[0],
+        )
 
     def __repr__(self) -> str:
         """String representation."""

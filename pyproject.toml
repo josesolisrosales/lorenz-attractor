@@ -51,7 +51,7 @@ dev = [
     "flake8>=6.0.0",
     "mypy>=1.5.0",
     "bandit>=1.7.0",
-    "safety>=2.0.0",
+    "pip-audit>=2.7.0",
 ]
 gpu = [
     "cupy>=12.0.0",
@@ -90,7 +90,7 @@ profile = "black"
 known_first_party = ["lorenz_attractor"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -99,7 +99,12 @@ check_untyped_defs = true
 disallow_untyped_decorators = true
 no_implicit_optional = true
 warn_redundant_casts = true
-warn_unused_ignores = true
+# numba ships no type stubs, so the `# type: ignore` comments its untyped @jit
+# decorators need are "used" or "unused" depending on the resolved numba/mypy
+# versions (see core/lorenz.py, integration/integrators.py) — flagging them made
+# CI flaky across dependency updates. NOTE: `--strict` on the CLI re-enables this,
+# so the CI workflow also passes `--no-warn-unused-ignores` after `--strict`.
+warn_unused_ignores = false
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
@@ -114,6 +119,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
+    "--cov-fail-under=39",
     "--strict-markers",
     "--disable-warnings",
 ]
@@ -121,6 +127,10 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "gpu: marks tests as requiring GPU (deselect with '-m \"not gpu\"')",
 ]
+
+[tool.bandit]
+# B403/B301: pickle is an explicit, opt-in export/import format (export/data.py export_pickle/import_pickle).
+skips = ["B403", "B301"]
 
 [tool.coverage.run]
 source = ["src/lorenz_attractor"]

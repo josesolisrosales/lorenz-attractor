@@ -1,6 +1,6 @@
 """Video export capabilities for Lorenz attractor simulations."""
 
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +13,7 @@ from ..visualization.plotter import LorenzPlotter
 class VideoExporter:
     """Export Lorenz attractor simulations as videos."""
 
-    def __init__(self, fps: int = 30, dpi: int = 100):
+    def __init__(self, fps: int = 30, dpi: int = 100) -> None:
         """
         Initialize video exporter.
 
@@ -100,7 +100,7 @@ class VideoExporter:
         (line,) = ax.plot([], [], [], 'b-', linewidth=1, alpha=0.7)
         (point,) = ax.plot([], [], [], 'ro', markersize=8)
 
-        def animate(frame_idx):
+        def animate(frame_idx: int) -> Any:
             """Animation function."""
             current_idx = frame_indices[frame_idx]
 
@@ -135,6 +135,7 @@ class VideoExporter:
         )
 
         # Save video
+        writer: Union[FFMpegWriter, PillowWriter]
         if filename.endswith('.mp4'):
             writer = FFMpegWriter(fps=settings['fps'], bitrate=settings['bitrate'])
         elif filename.endswith('.gif'):
@@ -200,7 +201,7 @@ class VideoExporter:
         # Initialize plot elements
         (line,) = ax.plot([], [], [], 'b-', linewidth=0.5, alpha=0.8)
 
-        def animate(frame_idx):
+        def animate(frame_idx: int) -> Any:
             """Animation function."""
             if frame_idx < len(results):
                 result = results[frame_idx]
@@ -225,6 +226,7 @@ class VideoExporter:
         )
 
         # Save video
+        writer: Union[FFMpegWriter, PillowWriter]
         if filename.endswith('.mp4'):
             writer = FFMpegWriter(fps=settings['fps'], bitrate=settings['bitrate'])
         elif filename.endswith('.gif'):
@@ -243,7 +245,7 @@ class VideoExporter:
         self,
         results: List[SimulationResult],
         filename: str,
-        colors: Optional[List[str]] = None,
+        colors: Optional[Union[List[str], np.ndarray]] = None,
         quality: str = 'high',
     ) -> str:
         """
@@ -300,7 +302,7 @@ class VideoExporter:
         # Find maximum length
         max_length = max(len(result.trajectory) for result in results)
 
-        def animate(frame_idx):
+        def animate(frame_idx: int) -> Any:
             """Animation function."""
             for i, (result, line, point) in enumerate(zip(results, lines, points)):
                 if frame_idx < len(result.trajectory):
@@ -320,6 +322,7 @@ class VideoExporter:
         )
 
         # Save video
+        writer: Union[FFMpegWriter, PillowWriter]
         if filename.endswith('.mp4'):
             writer = FFMpegWriter(fps=settings['fps'], bitrate=settings['bitrate'])
         elif filename.endswith('.gif'):
@@ -382,7 +385,7 @@ class VideoExporter:
         # Calculate number of frames for full rotation
         num_frames = int(360 / rotation_speed)
 
-        def animate(frame_idx):
+        def animate(frame_idx: int) -> Any:
             """Animation function."""
             azimuth = frame_idx * rotation_speed
             ax.view_init(elev=30, azim=azimuth)
@@ -394,6 +397,7 @@ class VideoExporter:
         )
 
         # Save video
+        writer: Union[FFMpegWriter, PillowWriter]
         if filename.endswith('.mp4'):
             writer = FFMpegWriter(fps=settings['fps'], bitrate=settings['bitrate'])
         elif filename.endswith('.gif'):
@@ -470,7 +474,7 @@ class VideoExporter:
         # Find maximum length
         max_length = max(len(result.trajectory) for result in results)
 
-        def animate(frame_idx):
+        def animate(frame_idx: int) -> Any:
             """Animation function."""
             for i, (result, line, point) in enumerate(zip(results, lines, points)):
                 if frame_idx < len(result.trajectory):
@@ -490,6 +494,7 @@ class VideoExporter:
         )
 
         # Save video
+        writer: Union[FFMpegWriter, PillowWriter]
         if filename.endswith('.mp4'):
             writer = FFMpegWriter(fps=settings['fps'], bitrate=settings['bitrate'])
         elif filename.endswith('.gif'):
